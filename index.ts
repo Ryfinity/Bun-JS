@@ -1,12 +1,13 @@
 const express = require("express");
 const userRoutes = require("./src/routes/userRoutes");
 const fileReaderRoutes = require("./src/routes/fileReaderRoutes");
+const asnRoutes = require("./src/routes/asnRoutes");
 
 const app = express();
 app.use(express.json());
 
 app.get("/", (req: any, res: any) => { res.send("Welcome to BUN JS!") });
-app.use("/api", [userRoutes, fileReaderRoutes]);
+app.use("/api", [userRoutes, fileReaderRoutes, asnRoutes]);
 
 // aws s3 connect
 const S3Client = require("./src/services/s3Services");
