@@ -2,14 +2,15 @@
 const S3Client = require("../config/awsS3connect");
 const { ListObjectsV2Command, GetObjectAclCommand, DeleteObjectCommand, CopyObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { AWS_S3_BUCKET, AWS_S3_REGION, AWS_S3_INCOMING_PREFIX, AWS_S3_ARCHIVE_PREFIX } = process.env
 const https = require("https");
 const fs = require("fs");
 
 class AwsS3 {
-    private bucketName: any = process.env.AWS_S3_BUCKET;
-    private region: any = process.env.AWS_S3_REGION;
-    private incoming: any = process.env.AWS_S3_INCOMING_PREFIX;
-    private archive: any = process.env.AWS_S3_ARCHIVE_PREFIX;
+    private bucketName: any = AWS_S3_BUCKET;
+    private region: any = AWS_S3_REGION;
+    private incoming: any = AWS_S3_INCOMING_PREFIX;
+    private archive: any = AWS_S3_ARCHIVE_PREFIX;
     private pathDownload = "public/downloads/";
     
     constructor() {
