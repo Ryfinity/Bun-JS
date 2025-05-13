@@ -3,7 +3,7 @@
 To install dependencies:
 
 ```bash
-bun install
+bun install | npm install
 ```
 
 ```bash
@@ -15,6 +15,7 @@ npm i mysql2
 npm i @aws-sdk/client-s3
 npm i @aws-sdk/s3-request-presigner
 npm i axios
+npm i bullmq
 ```
 
 To run:
@@ -23,4 +24,10 @@ To run:
 bun run index.ts / & "$env:USERPROFILE\.bun\bin\bun" run index.ts
 ```
 
+Redis:
+
+```bash
+keys *
+flushall
+```
 
