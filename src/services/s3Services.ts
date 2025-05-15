@@ -35,7 +35,7 @@ class AwsS3 {
                 });
             });
         }
-        return files;
+        return files.slice(1);
     }
     
     async downloadFile(key: any){
