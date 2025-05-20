@@ -78,14 +78,14 @@ class QueueService {
         const worker = new Worker(
             this.queue, // worker name
             async (job: any) => {
-                // await new Promise((resolve) => setTimeout(resolve, 4000));
+                // await new Promise((resolve) => setTimeout(resolve, 2000));
                 const json = job.data
                 const tokenService = new token();
                 const reusableToken = await tokenService.getReusableToken();
 
                 let config = {
                     method: 'POST',
-                    maxBodyLength: Infinity,
+                    // maxBodyLength: Infinity,
                     url: 'api/method/smr_asn.api.doc_ds_po_alloc_api.upsert_documents_ds_po_alloc',
                     headers: { 
                         'Content-Type': 'application/json',
