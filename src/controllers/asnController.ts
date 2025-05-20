@@ -9,20 +9,20 @@ const getVdrData = async (req: any, res: any) => {
     try {
         const [rows] = await database.query("SELECT * FROM asn_vdr_data WHERE validation = 1 LIMIT 1");
 
-        // rows.map((row: any) => {
-        //     row.delivery_date = formatDate(row.delivery_date);
-        //     return row;
-        // });
+        rows.map((row: any) => {
+            row.delivery_date = formatDate(row.delivery_date);
+            return row;
+        });
         const chunkSize = 1000; // Define the chunk size
         const removeKey = "id"; // Define the key to be removed from each object
         const rowsWithoutKey = removeKeyFromObjects(rows, removeKey); // Remove the key from each object
         const chunkedData = chunkData(rowsWithoutKey, chunkSize); // Chunk the data
-
-        const queueService = new QueueService("vdrQueue", "vdrJob");
+        
+        const queueService = new QueueService();
         chunkedData.forEach(async (item) => {
-            await queueService.addJob(item);
+            await queueService.addVdrJob(item, "vdrQueue", "vdrJob");
         });
-        await queueService.processVdrJob();
+        await queueService.processVdrJob("vdrQueue");
 
         res.status(200).json({message: "Data processed successfully"});
     } catch {
@@ -76,7 +76,7 @@ const processPOAlloc = async (req: any, res: any) => {
         const chunkSize = 1000;
         const chunkedData = chunkData(lines, chunkSize); // Chunk the data
         
-        const queueService = new QueueService("poAllocQueue", "poAllocJob");
+        const queueService = new QueueService();
         chunkedData.forEach(async (item) => {
             const json: any[] = [];
             const newItem = item.filter((obj: any) => Object.keys(obj).length > 0)
@@ -143,11 +143,114 @@ const processPOAlloc = async (req: any, res: any) => {
                     columns[0].trim()+"-"+columns[11].trim()+"-"+columns[24].trim(),
                 });
             });
-            await queueService.addJob(json);
+            await queueService.addPoAllocJob(json, "poAllocQueue", "poAllocJob");
         });
-        await queueService.processPoAllocJob();
+        await queueService.processPoAllocJob("poAllocQueue");
 
-        res.status(200).json({message: "Data processed successfully"});
+        res.status(200).json({message: "PO Allocation. Data processed successfully"});
+    });
+}
+
+const processPOSum = async (req: any, res: any) => {
+    const awsS3 = new S3Client();
+    const files = await awsS3.listFiles();
+    const filteredFiles = files.filter((file: any) => file.key.includes("posum.hsh") || file.key.includes("posum.txt")).map((file: any) => file.key);
+    
+    if (filteredFiles[0]) {
+        var file1 = filteredFiles[0];
+        await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    if (filteredFiles[1]) {
+        var file2 = filteredFiles[1];
+        await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+    
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
+    const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
+    const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
+    const hashValue = await calculateFileHash(filePathHash);
+
+    await fs.readFile(filePath, "utf8", async (err: any, data: any) => {
+        if (err) {
+            console.error("Error reading file:", err);
+            res.status(500).send("Error reading file");
+            return;
+        }
+        const lines = await data.toString().split("\r\n");
+        const removeLine = await data.toString().split('\n').filter((line: any) => line.trim() !== '').join('\n');
+        console.log(parseInt(hashValue[0])+"-"+parseInt(removeLine.split("\r\n").length))
+        if (parseInt(hashValue[0]) != parseInt(removeLine.split("\r\n").length)) {
+            console.log("Cannot be process due to different length");
+            res.status(200).json({message: "Cannot be process due to different length"});
+            return;
+        }
+        const chunkSize = 1000;
+        const chunkedData = chunkData(lines, chunkSize);
+
+        const queueService = new QueueService();
+        chunkedData.forEach(async (item) => {
+            const json: any[] = [];
+            const newItem = item.filter((obj: any) => Object.keys(obj).length > 0)
+            newItem.forEach((i: any) => {
+                const columns = i.split("|");
+                json.push({
+                    // "id": columns[0].trim(),
+                    "vendor_code": columns[0].trim(),
+                    "department_code": columns[16].trim(),
+                    "sub_dept_code": '',
+                    "vendor_name": columns[1].trim(),
+                    "company_name": columns[5].trim(),
+                    "document_no": columns[6].trim(),
+                    "reference_no": '',
+                    "department_name": columns[3].trim(),
+                    "ship_to": columns[7].trim(),
+                    "location": columns[4].trim(),
+                    "date_entry": formatDateTime(columns[2].trim()),
+                    "date_receipt": formatDateTime(columns[9].trim()),
+                    "date_cancel": formatDateTime(columns[10].trim()),
+                    "date_release": formatDateTime(columns[12].trim()),
+                    "date_posted": '',
+                    "date_filemtime": getDateTimeNow(),
+                    "date_first_read": '0000-00-00 00:00:00',
+                    "total_amount": '',
+                    "total_amount_source": columns[8].trim(),
+                    "status": columns[11].trim(),
+                    "po_type": 0,
+                    "poded_type": 9,
+                    "order_type": '',
+                    "tagging": '',
+                    "label": '',
+                    "payment_terms": '',
+                    "remarks": '',
+                    "type_tag": '',
+                    "read_status": '',
+                    "document_status": 1,
+                    "from_file": 0,
+                    "archive": 0,
+                    "is_test": 0,
+                    "unique_identifier": columns[0].trim()+"-"+columns[5].trim()+"-"+columns[4].trim()+"-"+columns[16].trim()+"-"+columns[6].trim(),
+                    "posum_type": 1,
+                    "company_code": columns[14].trim(),
+                    "location_code": columns[15].trim(),
+                    "date_added": getDateTimeNow(),
+                    "date_updated": getDateTimeNow(),
+                });
+            });
+            await queueService.addPOSumJob(json, "poSumQueue", "poSumJob");
+        });
+        await queueService.processPoSum("poSumQueue");
+
+        res.status(200).json({message: "PO Summary. Data processed successfully"});
     });
 }
 
@@ -169,6 +272,14 @@ const removeKeyFromObjects = (arr: any, key: string) => {
 const formatDate = (date: any) => {
     const dateObj = date.toLocaleDateString().split("/").reverse();
     return dateObj[0] + "-" + dateObj[2] + "-" + dateObj[1];
+}
+
+const formatDateTime = (strDate: any) => {
+    const year = parseInt(strDate.substring(0, 2), 10) + 2000;
+    const month = parseInt(strDate.substring(2, 4), 10) - 1; // Month is 0-indexed
+    const day = parseInt(strDate.substring(4, 6), 10);
+    const date = new Date(year, month, day);
+    return formatDate(date);
 }
 
 const getDateTimeNow = () => {
@@ -194,4 +305,4 @@ const removeLastElementIfBlank = async (arr: any) => {
     return arr;
 }
 
-module.exports = { getVdrData, processPOAlloc };
+module.exports = { getVdrData, processPOAlloc, processPOSum };
