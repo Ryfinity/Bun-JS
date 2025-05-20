@@ -10,8 +10,8 @@ app.get("/", (req: any, res: any) => { res.send("Welcome to BUN JS!") });
 app.use("/api", [userRoutes, fileReaderRoutes, asnRoutes]);
 
 // aws s3 connect
-const S3Client = require("./src/services/s3Services");
-const awsS3 = new S3Client();
+// const S3Client = require("./src/services/s3");
+// const awsS3 = new S3Client();
 // console.log(await awsS3.listFiles());
 // awsS3.downloadFile("uat/bunjs/incoming/POALLOC.txt");
 // awsS3.deleteFile("uat/bunjs/incoming/POALLOC.txt");

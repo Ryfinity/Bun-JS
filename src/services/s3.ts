@@ -1,6 +1,6 @@
 
 const S3Client = require("../config/awsS3connect");
-const { ListObjectsV2Command, GetObjectAclCommand, DeleteObjectCommand, CopyObjectCommand } = require("@aws-sdk/client-s3");
+const { ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { AWS_S3_BUCKET, AWS_S3_REGION, AWS_S3_INCOMING_PREFIX, AWS_S3_ARCHIVE_PREFIX } = process.env
 const https = require("https");
@@ -38,16 +38,16 @@ class AwsS3 {
         return files.slice(1);
     }
     
-    async downloadFile(key: any){
+    async downloadFile(key: any, fileName: any) {
         // Logic to upload file to S3
-        const command = new GetObjectAclCommand({
+        const command = new GetObjectCommand({
             Bucket: this.bucketName,
             Key: key,
         });
 
         const url = await getSignedUrl(S3Client, command);
         https.get(url, (res: any) => {
-            const path = this.pathDownload + "Sample.txt";
+            const path = this.pathDownload + fileName;
             const writeStream = fs.createWriteStream(path);
             res.pipe(writeStream);
 

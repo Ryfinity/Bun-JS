@@ -1,7 +1,9 @@
 const database = require("../config/asn_connection");
-const QueueService = require("../services/queueServices");
+const QueueService = require("../services/queue");
 const fs = require('fs');
 const fsPromises = require('fs').promises;
+const S3Client = require("../services/s3");
+const https = require("https");
 
 const getVdrData = async (req: any, res: any) => {
     try {
@@ -29,30 +31,56 @@ const getVdrData = async (req: any, res: any) => {
 }
 
 const processPOAlloc = async (req: any, res: any) => {
-    const filePath = "public/downloads/sample.txt";
-    const filePathHash = "public/downloads/sample.hsh";
+    const awsS3 = new S3Client();
+    const files = await awsS3.listFiles();
+    const filteredFiles = files.filter((file: any) => file.key.includes("POALLOC.hsh") || file.key.includes("POALLOC.txt")).map((file: any) => file.key);
+    
+    if (filteredFiles[0]) {
+        var file1 = filteredFiles[0];
+        await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    if (filteredFiles[1]) {
+        var file2 = filteredFiles[1];
+        await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+    
+    await new Promise((resolve) => setTimeout(resolve, 20000));
+
+    const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
+    const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
     const hashValue = await calculateFileHash(filePathHash);
 
-    fs.readFile(filePath, "utf8", async (err: any, data: any) => {
+    await fs.readFile(filePath, "utf8", async (err: any, data: any) => {
         if (err) {
             console.error("Error reading file:", err);
             res.status(500).send("Error reading file");
             return;
         }
-        const lines = data.toString().split("\r\n"); // Split the data into lines and process each line
-        if (parseInt(hashValue[0]) != parseInt(lines.length)) {
+        const lines = await data.toString().split("\r\n"); // Split the data into lines and process each line
+        const removeLine = await data.toString().split('\n').filter((line: any) => line.trim() !== '').join('\n');
+        console.log(parseInt(hashValue[0])+"-"+parseInt(removeLine.split("\r\n").length))
+        if (parseInt(hashValue[0]) != parseInt(removeLine.split("\r\n").length)) {
             console.log("Cannot be process due to different length");
             res.status(200).json({message: "Cannot be process due to different length"});
             return;
         }
-
-        const chunkSize = 500;
+        const chunkSize = 1000;
         const chunkedData = chunkData(lines, chunkSize); // Chunk the data
         
         const queueService = new QueueService("poAllocQueue", "poAllocJob");
         chunkedData.forEach(async (item) => {
             const json: any[] = [];
-            item.forEach((i: any) => {
+            const newItem = item.filter((obj: any) => Object.keys(obj).length > 0)
+            newItem.forEach((i: any) => {
                 const columns = i.split("|");
                 json.push({
                     "glcmpn": columns[0].trim(),
@@ -157,6 +185,13 @@ const getDateTimeNow = () => {
 const calculateFileHash = async (filePath: any) => {
     const data = await fsPromises.readFile(filePath, "utf8");
     return data.split(",");
+}
+
+const removeLastElementIfBlank = async (arr: any) => {
+    if (arr.length > 0 && (arr[arr.length - 1] === '' || arr[arr.length - 1] === null || arr[arr.length - 1] === undefined)) {
+      arr.pop();
+    }
+    return arr;
 }
 
 module.exports = { getVdrData, processPOAlloc };
