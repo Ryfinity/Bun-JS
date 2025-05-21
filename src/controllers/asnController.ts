@@ -53,7 +53,7 @@ const processPOAlloc = async (req: any, res: any) => {
         return;
     }
     
-    await new Promise((resolve) => setTimeout(resolve, 20000));
+    await new Promise((resolve) => setTimeout(resolve, 40000));
 
     const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
     const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
@@ -174,7 +174,7 @@ const processPOSum = async (req: any, res: any) => {
         return;
     }
     
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 40000));
 
     const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
     const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
@@ -259,25 +259,25 @@ const processPOAllocAff = async (req: any, res: any) => {
     const files = await awsS3.listFiles();
     const filteredFiles = files.filter((file: any) => file.key.includes("POALLOC_AFF.hsh") || file.key.includes("POALLOC_AFF.txt")).map((file: any) => file.key);
     
-    if (filteredFiles[0]) {
-        var file1 = filteredFiles[0];
-        // await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
-    } else {
-        console.log("No file found");
-        res.status(200).json({message: "No file found"});
-        return;
-    }
-
     if (filteredFiles[1]) {
         var file2 = filteredFiles[1];
-        // await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
+        await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
     } else {
         console.log("No file found");
         res.status(200).json({message: "No file found"});
         return;
     }
 
-    // await new Promise((resolve) => setTimeout(resolve, 20000));
+    if (filteredFiles[0]) {
+        var file1 = filteredFiles[0];
+        await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 40000));
 
     const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
     const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
@@ -297,7 +297,7 @@ const processPOAllocAff = async (req: any, res: any) => {
             res.status(200).json({message: "Cannot be process due to different length"});
             return;
         }
-        const chunkSize = 100;
+        const chunkSize = 500;
         const chunkedData = chunkData(lines, chunkSize);
         const queueService = new QueueService();
         chunkedData.forEach(async (item) => {
