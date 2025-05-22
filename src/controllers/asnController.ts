@@ -53,7 +53,7 @@ const processPOAlloc = async (req: any, res: any) => {
         return;
     }
     
-    await new Promise((resolve) => setTimeout(resolve, 20000));
+    await new Promise((resolve) => setTimeout(resolve, 40000));
 
     const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
     const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
@@ -174,7 +174,7 @@ const processPOSum = async (req: any, res: any) => {
         return;
     }
     
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 40000));
 
     const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
     const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
@@ -254,6 +254,122 @@ const processPOSum = async (req: any, res: any) => {
     });
 }
 
+const processPOAllocAff = async (req: any, res: any) => {
+    const awsS3 = new S3Client();
+    const files = await awsS3.listFiles();
+    const filteredFiles = files.filter((file: any) => file.key.includes("POALLOC_AFF.hsh") || file.key.includes("POALLOC_AFF.txt")).map((file: any) => file.key);
+    
+    if (filteredFiles[1]) {
+        var file2 = filteredFiles[1];
+        await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    if (filteredFiles[0]) {
+        var file1 = filteredFiles[0];
+        await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 40000));
+
+    const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
+    const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
+    const hashValue = await calculateFileHash(filePathHash);
+
+    await fs.readFile(filePath, "utf8", async (err: any, data: any) => {
+        if (err) {
+            console.error("Error reading file:", err);
+            res.status(500).send("Error reading file");
+            return;
+        }
+        const lines = await data.toString().split("\r\n");
+        const removeLine = await data.toString().split('\n').filter((line: any) => line.trim() !== '').join('\n');
+        console.log(parseInt(hashValue[0])+"-"+parseInt(removeLine.split("\r\n").length));
+        if (parseInt(hashValue[0]) != parseInt(removeLine.split("\r\n").length)) {
+            console.log("Cannot be process due to different length");
+            res.status(200).json({message: "Cannot be process due to different length"});
+            return;
+        }
+        const chunkSize = 500;
+        const chunkedData = chunkData(lines, chunkSize);
+        const queueService = new QueueService();
+        chunkedData.forEach(async (item) => {
+            const json: any[] = [];
+            const newItem = item.filter((obj: any) => Object.keys(obj).length > 0)
+            newItem.forEach((i: any) => {
+                const columns = i.split("|");
+                json.push({
+                    "poloc": columns[0].trim(),
+                    "strnam": columns[1].trim(),
+                    "povnum": columns[2].trim(),
+                    "asname": columns[3].trim(),
+                    "gt2fd1": columns[4].trim(),
+                    "gt2fd2": columns[5].trim(),
+                    "gt2fd3": columns[6].trim(),
+                    "gt2fd4": columns[7].trim(),
+                    "gt2fd5": columns[8].trim(),
+                    "gt2fd6": columns[9].trim(),
+                    "stcomp": columns[10].trim(),
+                    "glcnam": columns[11].trim(),
+                    "ponumb": columns[12].trim(),
+                    "pobon": columns[13].trim(),
+                    "posdat": columns[14].trim(),
+                    "poedat": columns[15].trim(),
+                    "pocdat": columns[16].trim(),
+                    "buycde": columns[17].trim(),
+                    "buynam": columns[18].trim(),
+                    "podpt": columns[19].trim(),
+                    "dptnam": columns[20].trim(),
+                    "posdpt": columns[21].trim(),
+                    "sdptnm": columns[22].trim(),
+                    "postor": columns[23].trim(),
+                    "whsshn": columns[24].trim(),
+                    "ascurc": columns[25].trim(),
+                    "aacont": columns[26].trim(),
+                    "inumbr": columns[27].trim(),
+                    "idescrp": columns[28].trim(),
+                    "buyum": columns[29].trim(),
+                    "sellum": columns[30].trim(),
+                    "pomret": columns[31].trim(),
+                    "pomcst": columns[32].trim(),
+                    "pomqtycs": columns[33].trim(),
+                    "totqtycs": columns[34].trim(),
+                    "pomqty": columns[35].trim(),
+                    "totqty": columns[36].trim(),
+                    "pomrec": columns[37].trim(),
+                    "totrec": columns[38].trim(),
+                    "extret": columns[39].trim(),
+                    "totexret": columns[40].trim(),
+                    "extcst": columns[41].trim(),
+                    "totexcst": columns[42].trim(),
+                    "g1igmp": columns[43].trim(),
+                    "sstylq": columns[44].trim(),
+                    "sstyl": columns[45].trim(),
+                    "ponot1": columns[46].trim(),
+                    "ponot2": columns[47].trim(),
+                    "ponot3": columns[48].trim(),
+                    "date_added": getDateTimeNow(),
+                    "date_updated": getDateTimeNow(),
+                    "header_unique_identifier": columns[0].trim()+"-"+columns[5].trim()+"-"+columns[4].trim()+"-"+columns[16].trim()+"-"+columns[6].trim(),
+                    "detail_unique_identifier": columns[0].trim()+"-"+columns[5].trim()+"-"+columns[4].trim()+"-"+columns[16].trim()+"-"+columns[6].trim(),
+                    "unique_identifier": columns[0].trim()+"-"+columns[5].trim()+"-"+columns[4].trim()+"-"+columns[16].trim()+"-"+columns[6].trim()
+                });
+            });
+            await queueService.addPOAllocAffJob(json, "poAllocAffQueue", "poAllocAffJob");
+        });
+        await queueService.processPoAllocAff("poAllocAffQueue");
+
+        res.status(200).json({message: "PO Alloc Aff Summary. Data processed successfully"});
+    });
+}
+
 const chunkData = (data: any, chunkSize: number) => {
     const chunks = [];
     for (let i = 0; i < data.length; i += chunkSize) {
@@ -305,4 +421,4 @@ const removeLastElementIfBlank = async (arr: any) => {
     return arr;
 }
 
-module.exports = { getVdrData, processPOAlloc, processPOSum };
+module.exports = { getVdrData, processPOAlloc, processPOSum, processPOAllocAff };
