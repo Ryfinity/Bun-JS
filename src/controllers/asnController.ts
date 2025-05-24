@@ -7,19 +7,19 @@ const https = require("https");
 
 const getVdrData = async (req: any, res: any) => {
     try {
-        const [rows] = await database.query("SELECT * FROM asn_vdr_data WHERE validation = 1 LIMIT 1");
+        const [rows] = await database.query("SELECT * FROM asn_vdr_data");
 
-        rows.map((row: any) => {
-            row.delivery_date = formatDate(row.delivery_date);
-            return row;
-        });
-        const chunkSize = 1000; // Define the chunk size
+        const chunkSize = 500; // Define the chunk size
         const removeKey = "id"; // Define the key to be removed from each object
         const rowsWithoutKey = removeKeyFromObjects(rows, removeKey); // Remove the key from each object
         const chunkedData = chunkData(rowsWithoutKey, chunkSize); // Chunk the data
         
         const queueService = new QueueService();
         chunkedData.forEach(async (item) => {
+            item.map((row: any) => {
+                row.delivery_date = formatDate(row.delivery_date);
+                return row;
+            });
             await queueService.addVdrJob(item, "vdrQueue", "vdrJob");
         });
         await queueService.processVdrJob("vdrQueue");
@@ -370,6 +370,125 @@ const processPOAllocAff = async (req: any, res: any) => {
     });
 }
 
+const processPOSet = async (req: any, res: any) => {
+    const awsS3 = new S3Client();
+    const files = await awsS3.listFiles();
+    const filteredFiles = files.filter((file: any) => file.key.includes("POSET.hsh") || file.key.includes("POSET.txt")).map((file: any) => file.key);
+
+    if (filteredFiles[1]) {
+        var file2 = filteredFiles[1];
+        await awsS3.downloadFile(file2, file2.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    if (filteredFiles[0]) {
+        var file1 = filteredFiles[0];
+        await awsS3.downloadFile(file1, file1.split("/").slice(-1).pop());   
+    } else {
+        console.log("No file found");
+        res.status(200).json({message: "No file found"});
+        return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 40000));
+
+    const filePath = await "public/downloads/"+ file2.split("/").slice(-1).pop();
+    const filePathHash = await "public/downloads/"+ file1.split("/").slice(-1).pop();
+    const hashValue = await calculateFileHash(filePathHash);
+
+    await fs.readFile(filePath, "utf8", async (err: any, data: any) => {
+        if (err) {
+            console.error("Error reading file:", err);
+            res.status(500).send("Error reading file");
+            return;
+        }
+        const lines = await data.toString().split("\r\n");
+        const removeLine = await data.toString().split('\n').filter((line: any) => line.trim() !== '').join('\n');
+        console.log(parseInt(hashValue[0])+"-"+parseInt(removeLine.split("\r\n").length));
+        if (parseInt(hashValue[0]) != parseInt(removeLine.split("\r\n").length)) {
+            console.log("Cannot be process due to different length");
+            res.status(200).json({message: "Cannot be process due to different length"});
+            return;
+        }
+        const chunkSize = 500;
+        const chunkedData = chunkData(lines, chunkSize);
+        
+        const queueService = new QueueService();
+        chunkedData.forEach(async (item) => {
+            const json: any[] = [];
+            const newItem = item.filter((obj: any) => Object.keys(obj).length > 0)
+            newItem.forEach((i: any) => {
+                const columns = i.split("|");
+                json.push({
+                    "asname1": columns[0].trim(),
+                    "glcmpn": columns[1].trim(),
+                    "glcnam1": columns[2].trim(),
+                    "dptnam1": columns[3].trim(),
+                    "ponumb": columns[4].trim(),
+                    "povnum": columns[5].trim(),
+                    "strnum": columns[6].trim(),
+                    "strnam1": columns[7].trim(),
+                    "podpt": columns[8].trim(),
+                    "posdpt": columns[9].trim(),
+                    "entdte1": formatDateTime(columns[10].trim()),
+                    "ttag1": columns[11].trim(),
+                    "ordert1": columns[12].trim(),
+                    "recdte1": formatDateTime(columns[13].trim()),
+                    "tmpdsc1": columns[14].trim(),
+                    "label1": columns[15].trim(),
+                    "candte1": columns[16].trim(),
+                    "ordby1": columns[17].trim(),
+                    "buynam1": columns[18].trim(),
+                    "pocost": columns[19].trim(),
+                    "poretl": columns[20].trim(),
+                    "inumber": columns[21].trim(),
+                    "ides50": columns[22].trim(),
+                    "islum": columns[23].trim(),
+                    "ibyum": columns[24].trim(),
+                    "pomret": columns[25].trim(),
+                    "pobcst": columns[26].trim(),
+                    "netbc": columns[27].trim(),
+                    "qtycd": columns[28].trim(),
+                    "pobqty": columns[29].trim(),
+                    "qtyrc": columns[30].trim(),
+                    "extcst": columns[31].trim(),
+                    "extret": columns[32].trim(),
+                    "totcs": columns[33].trim(),
+                    "totpcs": columns[34].trim(),
+                    "totrc": columns[35].trim(),
+                    "netcst": columns[36].trim(),
+                    "netret": columns[37].trim(),
+                    "isppid": columns[38].trim(),
+                    "icmpno": columns[39].trim(),
+                    "idsc50": columns[40].trim(),
+                    "cslum": columns[41].trim(),
+                    "cbyum": columns[42].trim(),
+                    "unret": columns[43].trim(),
+                    "isetqt": columns[44].trim(),
+                    "setpcs": columns[45].trim(),
+                    "ecmrtl": columns[46].trim(),
+                    "tsetqt": columns[47].trim(),
+                    "iupc": columns[48].trim(),
+                    "tbcost": columns[49].trim(),
+                    "date_added": getDateTimeNow(),
+                    "date_updated": getDateTimeNow(),
+                    "from_file": 1,
+                    "header_unique_identifier": 'HDR-RP-001',
+                    "unique_identifier": columns[5].trim()+"-"+columns[2].trim()+"-"+columns[6].trim()+"-"+columns[3].trim(),
+                });
+            });
+            // res.status(200).json({"data": json });
+            await queueService.addPOSetJob({"data": json }, "poSetQueue", "poSetJob");
+        });
+        await queueService.processPoSet("poSetQueue");
+
+        res.status(200).json({message: "PO Set. Data processed successfully"});
+    });
+}
+
 const chunkData = (data: any, chunkSize: number) => {
     const chunks = [];
     for (let i = 0; i < data.length; i += chunkSize) {
@@ -421,4 +540,4 @@ const removeLastElementIfBlank = async (arr: any) => {
     return arr;
 }
 
-module.exports = { getVdrData, processPOAlloc, processPOSum, processPOAllocAff };
+module.exports = { getVdrData, processPOAlloc, processPOSum, processPOAllocAff, processPOSet };
