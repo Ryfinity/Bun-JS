@@ -3,7 +3,8 @@ const {
     getVdrData,
     processPOAlloc,
     processPOSum,
-    processPOAllocAff
+    processPOAllocAff,
+    processPOSet
 } = require("../controllers/asnController");
 
 // router instance
@@ -14,6 +15,7 @@ router.get("/vdr-data", getVdrData);
 router.get("/po-alloc", processPOAlloc);
 router.get("/po-sum", processPOSum);
 router.get("/po-alloc-aff", processPOAllocAff);
+router.get("/po-set", processPOSet);
 
 
 module.exports = router;
