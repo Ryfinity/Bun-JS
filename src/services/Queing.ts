@@ -221,6 +221,46 @@ class Queing {
             console.log(`${job.id} has failed with ${err.message}`);
         });
     }
+
+    public processPoDetl(queue: any) {
+        const worker = new Worker(
+            queue,
+            async (job: any) => {
+                const json = job.data
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
+                
+                let config = {
+                    method: 'POST',
+                    maxBodyLength: Infinity,
+                    url: 'api/method/smr_asn.api.doc_ds_po_detail_api.upsert_documents_ds_po_detail',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Reusable-Token': reusableToken,
+                    }, 
+                    data : json,
+                };
+
+                await Axios.request(config)
+                .then((response: any) => {  
+                    // console.log(JSON.stringify(response.data));
+                })
+                .catch((error: any) => {
+                    console.log('error dito bakit kaya');
+                    console.log(error.message);
+                }); 
+            },
+            { connection: { redis: this.redisConfig }}, 
+        );
+        
+        worker.on('completed', (job: any) => {
+            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
+        });
+        
+        worker.on('failed', (job: any, err: any) => {
+            console.log(`${job.id} has failed with ${err.message}`);
+        });
+    }
 }
 
 module.exports = Queing;

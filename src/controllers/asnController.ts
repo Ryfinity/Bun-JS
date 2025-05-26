@@ -224,4 +224,53 @@ const processPOSet = async (req: any, res: any) => {
     res.status(200).json({message: "PO Prepack. Data processed successfully"});
 }
 
-module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet };
+const processPODetails = async (req: any, res: any) => {
+    const S3 = new S3Client();
+    const shsFile = await Helpers.checkFileIfExist("podetl.hsh");
+    const txtFile = await Helpers.checkFileIfExist("podetl.txt");
+
+    const shsFilename = shsFile.split("/").slice(-1).pop();
+    const txtFilename = txtFile.split("/").slice(-1).pop();
+
+    const shsFileURL =  await S3.fileURL(shsFile, shsFilename);
+    const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
+
+    const donwloadShsFile = Helpers.downloadShsFile(shsFileURL, shsFilename, pathDownload);
+
+    https.get(txtFileURL, (res: any) => {
+        const shsPath = pathDownload + shsFilename;
+        const txtPath = pathDownload + txtFilename;
+        const writeStream = fs.createWriteStream(txtPath);
+        res.pipe(writeStream);
+
+        writeStream.on("finish", async () => {
+            writeStream.close();
+            console.log("File downloaded successfully.");
+
+            const shsData = await Helpers.calculateFileHash(shsPath);
+
+            fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
+                const removeEmptyLine = Helpers.removeEmptyLine(data);
+                const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
+
+                const lines = await data.toString().split("\r\n");
+                const chunkSize = 500;
+                const chunkData = Helpers.chunkingData(lines, chunkSize);
+
+                const queing = new Queing();
+                chunkData.forEach(async (chunks: any) => {
+                    const arr = Helpers.processPODetails(chunks);
+                    await queing.addJob({"data": arr}, "poDetlQueue", "poDetlJob");
+                });
+                await queing.processPoDetl("poDetlQueue");  
+            });
+        });
+
+        writeStream.on("error", (err: any) => {
+            console.error("Error writing file:", err);
+        });
+    });
+    res.status(200).json({message: "PO Details. Data processed successfully"});
+}
+
+module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails };
