@@ -19,7 +19,7 @@ const processVdrdata = async (req: any, res: any) => {
                 row.delivery_date = Helpers.formatDate(row.delivery_date);
                 return row;
             });
-            await queing.addVdrJob(chunk, "vdrQueue", "vdrJob");
+            await queing.addJob(chunk, "vdrQueue", "vdrJob");
         });
         await queing.processVdrJob("vdrQueue");
         res.status(200).json({message: "Data processed successfully"});
