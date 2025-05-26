@@ -1,31 +1,18 @@
-const { Queue, QueueEvents, Worker  } = require("bullmq");
-const IORedis = require("ioredis");
-const axios = require("../config/axios");
-const token = require("../services/token");
+const { Queue, Worker  } = require("bullmq");
+const Axios = require("../config/Axios");
+const Token = require("../services/Token");
 const { REDIS_HOST, REDIS_PORT } = process.env;
-const fs = require('fs');
 
-class QueueService {
-    private queue: any;
-    private jobName: any;
+class Queing {
     private redisConfig = {
         host: REDIS_HOST,
         port: REDIS_PORT
     };
 
-    // constructor(queue: any, jobName: any) {
-    //     this.queue = queue;
-    //     this.jobName = jobName;
-    // }
-
-    public addVdrJob(data: any, queue: any, jobName: any) {
+    public addJob(data: any, queue: string, jobName: string) {
         const myQueue = new Queue(queue, {
             defaultJobOptions: {
                 attempts: 3,
-                // backoff: {
-                //   type: 'exponential',
-                //   delay: 1000,
-                // },
             },
             connection: { redis: this.redisConfig },
         });
@@ -34,15 +21,14 @@ class QueueService {
 
     public processVdrJob(queue: any) {
         const worker = new Worker(
-            queue, // worker name
+            queue,
             async (job: any) => {
-                await new Promise((resolve) => setTimeout(resolve, 5000));
                 const json = JSON.stringify({
                     "data": job.data,
                 });
 
-                const tokenService = new token();
-                const reusableToken = await tokenService.getReusableToken();
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
 
                 let config = {
                     method: 'POST',
@@ -55,7 +41,7 @@ class QueueService {
                     data : json,
                 };
 
-                await axios.request(config)
+                await Axios.request(config)
                 .then((response: any) => {  
                     // console.log(JSON.stringify(response.data));
                 })
@@ -75,24 +61,13 @@ class QueueService {
         });
     }
 
-    public addPoAllocJob(data: any, queue: any, jobName: any) {
-        const myQueue = new Queue(queue, {
-            defaultJobOptions: {
-                attempts: 3,
-            },
-            connection: { redis: this.redisConfig },
-        });
-        myQueue.add(jobName, data);
-    }
-
     public processPoAllocJob(queue: any) {
         const worker = new Worker(
-            queue, // worker name
+            queue,
             async (job: any) => {
-                // await new Promise((resolve) => setTimeout(resolve, 2000));
                 const json = job.data
-                const tokenService = new token();
-                const reusableToken = await tokenService.getReusableToken();
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
 
                 let config = {
                     method: 'POST',
@@ -105,7 +80,7 @@ class QueueService {
                     data : json,
                 };
 
-                await axios.request(config)
+                await Axios.request(config)
                 .then((response: any) => {  
                     // console.log(JSON.stringify(response.data));
                 })
@@ -126,29 +101,13 @@ class QueueService {
         });
     }
 
-    public addPOSumJob(data: any, queue: any, jobName: any) {
-        const myQueue = new Queue(queue, {
-            defaultJobOptions: {
-                attempts: 3,
-            },
-            connection: { redis: this.redisConfig },
-        });
-        myQueue.add(jobName, data);
-    }
-
     public processPoSum(queue: any) {
         const worker = new Worker(
-            queue, // worker name
+            queue,
             async (job: any) => {
-                await new Promise((resolve) => setTimeout(resolve, 3000));
                 const json = job.data
-                // fs.writeFile('public/downloads/file_'+job.id+'.txt', JSON.stringify(json), (err: any) => {
-                //     if (err) {
-                //       console.error(err);
-                //     }
-                // });
-                const tokenService = new token();
-                const reusableToken = await tokenService.getReusableToken();
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
 
                 let config = {
                     method: 'POST',
@@ -161,7 +120,7 @@ class QueueService {
                     data : json,
                 };
 
-                await axios.request(config)
+                await Axios.request(config)
                 .then((response: any) => {  
                     // console.log(JSON.stringify(response.data));
                 })
@@ -182,24 +141,14 @@ class QueueService {
         });
     }
 
-    public addPOAllocAffJob(data: any, queue: any, jobName: any) {
-        const myQueue = new Queue(queue, {
-            defaultJobOptions: {
-                attempts: 3,
-            },
-            connection: { redis: this.redisConfig },
-        });
-        myQueue.add(jobName, data);
-    }
-
     public processPoAllocAff(queue: any) {
         const worker = new Worker(
-            queue, // worker name
+            queue,
             async (job: any) => {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
                 const json = job.data
-                const tokenService = new token();
-                const reusableToken = await tokenService.getReusableToken();
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
                 
                 let config = {
                     method: 'POST',
@@ -212,7 +161,7 @@ class QueueService {
                     data : json,
                 };
 
-                await axios.request(config)
+                await Axios.request(config)
                 .then((response: any) => {  
                     // console.log(JSON.stringify(response.data));
                 })
@@ -233,24 +182,13 @@ class QueueService {
         });
     }
 
-    public addPOSetJob(data: any, queue: any, jobName: any) {
-        const myQueue = new Queue(queue, {
-            defaultJobOptions: {
-                attempts: 3,
-            },
-            connection: { redis: this.redisConfig },
-        });
-        myQueue.add(jobName, data);
-    }
-
     public processPoSet(queue: any) {
         const worker = new Worker(
-            queue, // worker name
+            queue,
             async (job: any) => {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
                 const json = job.data
-                const tokenService = new token();
-                const reusableToken = await tokenService.getReusableToken();
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
                 
                 let config = {
                     method: 'POST',
@@ -263,13 +201,8 @@ class QueueService {
                     data : json,
                 };
 
-                await axios.request(config)
+                await Axios.request(config)
                 .then((response: any) => {  
-                    fs.writeFile('public/downloads/file_'+job.id+'.txt', JSON.stringify(response.data), (err: any) => {
-                        if (err) {
-                        console.error(err);
-                        }
-                    });
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
@@ -288,7 +221,6 @@ class QueueService {
             console.log(`${job.id} has failed with ${err.message}`);
         });
     }
-
 }
 
-module.exports = QueueService;
+module.exports = Queing;

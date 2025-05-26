@@ -1,24 +1,16 @@
 
-const S3Client = require("../config/awsS3connect");
+const S3Client = require("../config/S3Connection");
 const { ListObjectsV2Command, GetObjectCommand, DeleteObjectCommand, CopyObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { AWS_S3_BUCKET, AWS_S3_REGION, AWS_S3_INCOMING_PREFIX, AWS_S3_ARCHIVE_PREFIX } = process.env
-const https = require("https");
-const fs = require("fs");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 class AwsS3 {
     private bucketName: any = AWS_S3_BUCKET;
     private region: any = AWS_S3_REGION;
     private incoming: any = AWS_S3_INCOMING_PREFIX;
     private archive: any = AWS_S3_ARCHIVE_PREFIX;
-    private pathDownload = "public/downloads/";
     
-    constructor() {
-        // Initialize AWS S3 client here
-    }
-
     async listFiles() {
-        // Logic to list files from S3
         const files : any[] = [];
         const command = new ListObjectsV2Command({
             Bucket: this.bucketName,    
@@ -38,33 +30,18 @@ class AwsS3 {
         return files.slice(1);
     }
     
-    async downloadFile(key: any, fileName: any) {
-        // Logic to upload file to S3
+    async fileURL(key: any, fileName: any) {
         const command = new GetObjectCommand({
             Bucket: this.bucketName,
             Key: key,
         });
 
         const url = await getSignedUrl(S3Client, command);
-        https.get(url, (res: any) => {
-            const path = this.pathDownload + fileName;
-            const writeStream = fs.createWriteStream(path);
-            res.pipe(writeStream);
-
-            writeStream.on("finish", () => {
-                writeStream.close();
-                console.log("File downloaded successfully.");
-            });
-
-            writeStream.on("error", (err: any) => {
-                console.error("Error writing file:", err);
-            });
-        });
         return url;
+        
     }
     
     async deleteFile(key: any) {
-        // Logic to delete file from S3
         const copyparams = {
             Bucket: this.bucketName,
             CopySource: this.bucketName + '/' + key,
