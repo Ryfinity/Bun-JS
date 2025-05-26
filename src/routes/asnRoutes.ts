@@ -4,7 +4,8 @@ const {
     processPOAlloc,
     processPOSum,
     processPOAllocAff,
-    processPOSet
+    processPOSet,
+    processPODetails
 } = require("../controllers/AsnController");
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get("/po-alloc", processPOAlloc);
 router.get("/po-sum", processPOSum);
 router.get("/po-alloc-aff", processPOAllocAff);
 router.get("/po-set", processPOSet);
+router.get("/po-detl", processPODetails);
 
 module.exports = router;
