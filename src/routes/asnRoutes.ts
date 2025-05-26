@@ -1,21 +1,18 @@
 const express = require("express");
 const {
-    getVdrData,
+    processVdrdata,
     processPOAlloc,
     processPOSum,
     processPOAllocAff,
     processPOSet
-} = require("../controllers/asnController");
+} = require("../controllers/AsnController");
 
-// router instance
 const router = express.Router();
 
-// routes list
-router.get("/vdr-data", getVdrData);
+router.get("/vdr-data", processVdrdata);
 router.get("/po-alloc", processPOAlloc);
 router.get("/po-sum", processPOSum);
 router.get("/po-alloc-aff", processPOAllocAff);
 router.get("/po-set", processPOSet);
-
 
 module.exports = router;
