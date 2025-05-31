@@ -150,9 +150,9 @@ module.exports = {
                 "printd": columns[51].trim(),
                 "date_added": this.getDateTimeNow(),
                 "date_updated": this.getDateTimeNow(),
-                "header_unique_identifier": this.getDateTimeNow(),
-                "detail_unique_identifier": this.getDateTimeNow(),
-                "unique_identifier": this.getDateTimeNow()
+                "header_unique_identifier": columns[4].trim()+"-"+columns[0].trim()+"-"+columns[2].trim()+"-"+columns[10].trim()+"-"+columns[6].trim(),
+                "detail_unique_identifier": columns[4].trim()+"-"+columns[0].trim()+"-"+columns[2].trim()+"-"+columns[10].trim()+"-"+columns[6].trim()+"-"+columns[8].trim()+"-"+columns[11].trim(),
+                "unique_identifier": columns[4].trim()+"-"+columns[0].trim()+"-"+columns[2].trim()+"-"+columns[10].trim()+"-"+columns[6].trim()+"-"+columns[8].trim()+"-"+columns[11].trim()+"-"+columns[24].trim()
             });
         });
         return arr;
@@ -167,11 +167,11 @@ module.exports = {
                 // "id": columns[0].trim(),
                 "vendor_code": columns[0].trim(),
                 "department_code": columns[16].trim(),
-                "sub_dept_code": '',
+                "sub_dept_code": 0,
                 "vendor_name": columns[1].trim(),
                 "company_name": columns[5].trim(),
                 "document_no": columns[6].trim(),
-                "reference_no": '',
+                "reference_no": 0,
                 "department_name": columns[3].trim(),
                 "ship_to": columns[7].trim(),
                 "location": columns[4].trim(),
@@ -179,10 +179,10 @@ module.exports = {
                 "date_receipt": this.formatDateTime(columns[9].trim()),
                 "date_cancel": this.formatDateTime(columns[10].trim()),
                 "date_release": this.formatDateTime(columns[12].trim()),
-                "date_posted": '',
+                "date_posted": this.getDateTimeNow(),
                 "date_filemtime": this.getDateTimeNow(),
-                "date_first_read": '0000-00-00 00:00:00',
-                "total_amount": '',
+                "date_first_read": this.getDateTimeNow(),
+                "total_amount": 0,
                 "total_amount_source": columns[8].trim(),
                 "status": columns[11].trim(),
                 "po_type": 0,
@@ -193,12 +193,12 @@ module.exports = {
                 "payment_terms": '',
                 "remarks": '',
                 "type_tag": '',
-                "read_status": '',
+                "read_status": 0,
                 "document_status": 1,
                 "from_file": 0,
                 "archive": 0,
                 "is_test": 0,
-                "unique_identifier": this.getDateTimeNow(),
+                "unique_identifier": columns[1].trim()+"-"+columns[14].trim()+"-"+columns[15].trim()+"-"+columns[16].trim()+"-"+columns[6].trim(),
                 "posum_type": 1,
                 "company_code": columns[14].trim(),
                 "location_code": columns[15].trim(),
@@ -266,9 +266,9 @@ module.exports = {
                 "ponot3": columns[48].trim(),
                 "date_added": this.getDateTimeNow(),
                 "date_updated": this.getDateTimeNow(),
-                "header_unique_identifier": this.getDateTimeNow()+"-"+columns[12].trim(),
-                "detail_unique_identifier": this.getDateTimeNow()+"-"+columns[12].trim(),
-                "unique_identifier": this.getDateTimeNow()+"-"+columns[12].trim()
+                "header_unique_identifier": columns[2].trim()+"-"+columns[10].trim()+"-"+columns[23].trim()+"-"+columns[19].trim()+"-"+columns[12].trim(),
+                "detail_unique_identifier": columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[27].trim()+"-"+columns[21].trim(),
+                "unique_identifier": columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[2].trim()+"-"+columns[27].trim()+"-"+columns[21].trim()
             });
         });
         return arr;
@@ -333,8 +333,8 @@ module.exports = {
                 "date_added": this.getDateTimeNow(),
                 "date_updated": this.getDateTimeNow(),
                 "from_file": 1,
-                "header_unique_identifier": 'HDR-RP-001',
-                "unique_identifier": this.getDateTimeNow(),
+                "header_unique_identifier": columns[5].trim()+"-"+columns[1].trim()+"-"+columns[6].trim()+"-"+columns[8].trim()+"-"+columns[4].trim(),
+                "unique_identifier": columns[5].trim()+"-"+columns[1].trim()+"-"+columns[6].trim()+"-"+columns[8].trim()+"-"+columns[4].trim()+"-"+columns[21].trim()+"-"+columns[9].trim()+"-"+columns[39].trim(),
             });
         });
         return arr;
@@ -547,8 +547,8 @@ module.exports = {
                 "date_added": this.getDateTimeNow(),
                 "date_updated": this.getDateTimeNow(),
                 "podetl_type": 1,
-                "header_unique_identifier": "HDR001",
-                "unique_identifier": this.getDateTimeNow(),
+                "header_unique_identifier": columns[0].trim()+"-"+columns[196].trim()+"-"+columns[197].trim()+"-"+columns[7].trim()+"-"+columns[1].trim(),
+                "unique_identifier": columns[1].trim()+"-"+columns[196].trim()+"-"+columns[197].trim()+"-"+columns[7].trim()+"-"+columns[1].trim()+"-"+columns[17].trim()+"-"+columns[8].trim()+"-"+parseInt(columns[20].trim()),
                 "from_file": 0,
                 "glcpmn": columns[196].trim(),
                 "strnum": columns[197].trim(),
