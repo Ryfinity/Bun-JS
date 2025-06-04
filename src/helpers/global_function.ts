@@ -90,6 +90,19 @@ module.exports = {
         return dateObj[0] + "-" + dateObj[2] + "-" + dateObj[1];
     },
 
+    utcFormatDateTime: function(d: any) {
+        const date = new Date(d);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        return formattedDate;
+    },
+
     processPOAlloc: function(data: []) {
         const arr: any[] = [];
         const newArr = data.filter((obj: any) => Object.keys(obj).length > 0)
