@@ -2,6 +2,7 @@ const S3Client = require("../services/AwsS3");
 const https = require("https");
 const fsPromises = require('fs').promises;
 const fs = require("fs");
+const BunConnection = require("../config/BunConnection")
 
 module.exports = {
     chunkingData: function(data: [], size: number) {
@@ -101,6 +102,12 @@ module.exports = {
     
         const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         return formattedDate;
+    },
+
+    reacordActivityLog: async function(details: []) {
+        const insertquery = `INSERT INTO activity_log (log_name, app_name, message, event, properties, created_at, updated_at)  VALUES (?, ?, ?, ?, ?, ?, ?)`
+        const [record_activity_log] = await BunConnection.query(insertquery, details);
+        return record_activity_log;
     },
 
     processPOAlloc: function(data: []) {

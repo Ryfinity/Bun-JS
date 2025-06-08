@@ -2,6 +2,7 @@ const { Queue, Worker  } = require("bullmq");
 const Axios = require("../config/Axios");
 const Token = require("../services/Token");
 const { REDIS_HOST, REDIS_PORT } = process.env;
+const Helpers = require("../helpers/global_function")
 
 class Queing {
     private redisConfig = {
@@ -47,13 +48,20 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log(error);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Alloc", "ASN", "PO Alloc Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 });
             },
             { connection: { redis: this.redisConfig }}, 
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`${job.id} has completed!`);
+            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
@@ -85,8 +93,13 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya');
-                    console.log(error);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Alloc", "ASN", "PO Alloc Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 }); 
             },
             { connection: { redis: this.redisConfig }}, 
@@ -125,8 +138,13 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya');
-                    console.log(error.message);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Summary", "ASN", "PO Summary Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 }); 
             },
             { connection: { redis: this.redisConfig }}, 
@@ -166,8 +184,13 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya');
-                    console.log(error.message);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Alloc Aff", "ASN", "PO Alloc Aff Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 }); 
             },
             { connection: { redis: this.redisConfig }}, 
@@ -193,7 +216,7 @@ class Queing {
                 let config = {
                     method: 'POST',
                     maxBodyLength: Infinity,
-                    url: 'api/method/smr_asn.api.doc_ds_po_repack_api.upsert_documents_ds_po_repack',
+                    url: 'api/method/smr_asn.api.doc_ds_po_prepack_api.upsert_documents_ds_po_repack',
                     headers: { 
                         'Content-Type': 'application/json',
                         'X-Reusable-Token': reusableToken,
@@ -206,8 +229,13 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya');
-                    console.log(error.message);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Set", "ASN", "PO Set Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 }); 
             },
             { connection: { redis: this.redisConfig }}, 
@@ -246,8 +274,13 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya');
-                    console.log(error.message);
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["PO Detail", "ASN", "PO Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
                 }); 
             },
             { connection: { redis: this.redisConfig }}, 
