@@ -2,7 +2,7 @@ const { Queue, Worker  } = require("bullmq");
 const Axios = require("../config/Axios");
 const Token = require("../services/Token");
 const { REDIS_HOST, REDIS_PORT } = process.env;
-const Helpers = require("../helpers/global_function")
+const Helpers = require("../helpers/global_function");
 
 class Queing {
     private redisConfig = {
@@ -93,8 +93,8 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
+                    console.log('error dito bakit kaya: Job ID '+ job.id +' | data length '+job.data.data.length);
+                    var data = [{   
                         'error': error,
                         'data': job.data
                     }];
@@ -288,6 +288,99 @@ class Queing {
         
         worker.on('completed', (job: any) => {
             console.log(`Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
+        });
+        
+        worker.on('failed', (job: any, err: any) => {
+            console.log(`${job.id} has failed with ${err.message}`);
+        });
+    }
+
+    public processRcrSum(queue: any) {
+        const worker = new Worker(
+            queue,
+            async (job: any) => {
+                const json = JSON.stringify({
+                    "data_list": job.data,
+                });
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
+                let config = {
+                    method: 'POST',
+                    maxBodyLength: Infinity,
+                    url: 'api/method/smr_asn.api.doc_ds_rcr_api.process_documents_ds_rcr_bulk',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Reusable-Token': reusableToken,
+                    }, 
+                    data : json,
+                };
+
+                await Axios.request(config)
+                .then((response: any) => {  
+                    // console.log(JSON.stringify(response.data));
+                })
+                .catch((error: any) => {
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["RCR Detail", "ASN", "RCR Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                }); 
+            },
+            { connection: { redis: this.redisConfig }}, 
+        );
+        
+        worker.on('completed', (job: any) => {
+            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+        });
+        
+        worker.on('failed', (job: any, err: any) => {
+            console.log(`${job.id} has failed with ${err.message}`);
+        });
+    }
+
+    public processRcrDetl(queue: any) {
+        const worker = new Worker(
+            queue,
+            async (job: any) => {
+                const json = JSON.stringify({
+                    "data_list": job.data,
+                });
+
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
+                let config = {
+                    method: 'POST',
+                    maxBodyLength: Infinity,
+                    url: 'api/method/smr_asn.api.doc_ds_rcr_details_api.process_documents_ds_rcr_details_bulk',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Reusable-Token': reusableToken,
+                    }, 
+                    data : json,
+                };
+
+                await Axios.request(config)
+                .then((response: any) => {  
+                    // console.log(JSON.stringify(response.data));
+                })
+                .catch((error: any) => {
+                    console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["RCR Detail", "ASN", "RCR Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                }); 
+            },
+            { connection: { redis: this.redisConfig }}, 
+        );
+        
+        worker.on('completed', (job: any) => {
+            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
