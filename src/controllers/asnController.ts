@@ -290,10 +290,82 @@ const processPODetails = async (req: any, res: any) => {
     res.status(200).json({message: "PO Details. Data processed successfully"});
 }
 
+const processRCRSum = async (req: any, res: any) => {
+    const S3 = new S3Client();
+    const txtFile = await Helpers.checkFileIfExist("RCRSUM.txt");
+
+    const txtFilename = txtFile.split("/").slice(-1).pop();
+    const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
+
+    https.get(txtFileURL, (res: any) => {
+        const txtPath = pathDownload + txtFilename;
+        const writeStream = fs.createWriteStream(txtPath);
+        res.pipe(writeStream);
+
+        writeStream.on("finish", async () => {
+            writeStream.close();
+            console.log("File downloaded successfully.");
+
+            fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
+                const removeEmptyLine = Helpers.removeEmptyLine(data);
+
+                const lines = await data.toString().split("\r\n");
+                const chunkSize = 500;
+                const chunkData = Helpers.chunkingData(lines, chunkSize);
+
+                const queing = new Queing();
+                chunkData.forEach(async (chunks: any) => {
+                    const arr = Helpers.processRCRSum(chunks);
+                    await queing.addJob(arr, "rcrSumQueue", "rcrSumJob");
+                });
+                await queing.processRcrSum("rcrSumQueue");  
+            });
+        });
+    });
+
+    res.status(200).json({message: "RCR Summary. Data processed successfully"});
+}
+
+const processRCRDetl = async (req: any, res: any) => {
+    const S3 = new S3Client();
+    const txtFile = await Helpers.checkFileIfExist("RCRDTL.txt");
+
+    const txtFilename = txtFile.split("/").slice(-1).pop();
+    const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
+
+    https.get(txtFileURL, (res: any) => {
+        const txtPath = pathDownload + txtFilename;
+        const writeStream = fs.createWriteStream(txtPath);
+        res.pipe(writeStream);
+
+        writeStream.on("finish", async () => {
+            writeStream.close();
+            console.log("File downloaded successfully.");
+
+            fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
+                const removeEmptyLine = Helpers.removeEmptyLine(data);
+
+                const lines = await data.toString().split("\r\n");
+                const chunkSize = 500;
+                const chunkData = Helpers.chunkingData(lines, chunkSize);
+
+                const queing = new Queing();
+                chunkData.forEach(async (chunks: any) => {
+                    const arr = Helpers.processRCRDetl(chunks);
+                    await queing.addJob(arr, "rcrDetlQueue", "rcrDetlJob");
+                });
+                await queing.processRcrDetl("rcrDetlQueue");  
+            });
+        });
+    });
+
+    res.status(200).json({message: "RCR Details. Data processed successfully"});
+}
+
 const reacordActivityLog = async (details: []) => {
     const insertquery = `INSERT INTO activity_log (log_name, app_name, message, event, properties, created_at, updated_at)  VALUES (?, ?, ?, ?, ?, ?, ?)`
     const [record_activity_log] = await BunConnection.query(insertquery, details);
     return record_activity_log;
 }
 
-module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails };
+module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails, processRCRSum, processRCRDetl };

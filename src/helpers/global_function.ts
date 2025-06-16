@@ -576,5 +576,121 @@ module.exports = {
             });
         });
         return arr;
+    },
+
+    processRCRSum: function(data: []) {
+        const arr: any[] = [];
+        const newArr = data.filter((obj: any) => Object.keys(obj).length > 0)
+        newArr.forEach((i: any) => {
+            const columns = i.split("|");
+            if (columns[0].trim() == '0' || columns[0].trim() == null || columns[0].trim() == undefined || columns[0].trim() == '') {
+                this.reacordActivityLog(['RCR Summary', 'SHS', 'RCR Summary has no vendor code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            } 
+            if (columns[3].trim() == '0' || columns[3].trim() == null || columns[3].trim() == undefined || columns[3].trim() == '') {
+                this.reacordActivityLog(['RCR Summary', 'SHS', 'RCR Summary has no company code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[5].trim() == '0' || columns[5].trim() == null || columns[5].trim() == undefined || columns[5].trim() == '') {
+                this.reacordActivityLog(['RCR Summary', 'SHS', 'RCR Summary has no branch code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[10].trim() == '0' || columns[10].trim() == null || columns[10].trim() == undefined || columns[10].trim() == '') {
+                this.reacordActivityLog(['RCR Summary', 'SHS', 'RCR Summary has no RCR number', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            } 
+            if (columns[8].trim() == '0' || columns[8].trim() == null || columns[8].trim() == undefined || columns[8].trim() == '') {
+                this.reacordActivityLog(['RCR Summary', 'SHS', 'RCR Summary has no PO number', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            arr.push({
+                "vendor_code": columns[0].trim(),
+                "vendor_name": columns[1].trim(),
+                "receipt_date": columns[2].trim(),
+                "company_code": columns[3].trim(),
+                "company_name": columns[4].trim(),
+                "branch_code": columns[5].trim(),
+                "store_name": columns[6].trim(),
+                "invoice_number": columns[7].trim(),
+                "po_number": columns[8].trim(),
+                "po_cost": parseInt(columns[9].trim()) / 10000,
+                "rcr_number": columns[10].trim(),
+                "quantity_ordered": columns[11].trim(),
+                "quantity_delivered": columns[12].trim()
+            });
+        });
+        const filteredArray = arr.filter(item => item.vendor_code !== '0' && item.vendor_code !== null && item.vendor_code !== undefined  && item.vendor_code !== '');
+        return arr;
+    },
+
+    processRCRDetl: function(data: []) {
+        const arr: any[] = [];
+        const newArr = data.filter((obj: any) => Object.keys(obj).length > 0);
+        newArr.forEach((i: any) => {
+            const columns = i.split("|");
+            if (columns[4].trim() == '0' || columns[4].trim() == null || columns[4].trim() == undefined || columns[4].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no vendor code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[0].trim() == '0' || columns[0].trim() == null || columns[0].trim() == undefined || columns[0].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no company code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[2].trim() == '0' || columns[2].trim() == null || columns[2].trim() == undefined || columns[2].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no branch code', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[15].trim() == '0' || columns[15].trim() == null || columns[15].trim() == undefined || columns[15].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no RCR number', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[14].trim() == '0' || columns[14].trim() == null || columns[14].trim() == undefined || columns[14].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no PO number', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[6].trim() == '0' || columns[6].trim() == null || columns[6].trim() == undefined || columns[6].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no SKU', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[8].trim() == '0' || columns[8].trim() == null || columns[8].trim() == undefined || columns[8].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no UPC', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            if (columns[21].trim() == '0' || columns[21].trim() == null || columns[21].trim() == undefined || columns[21].trim() == '') {
+                this.reacordActivityLog(['RCR Details', 'SHS', 'RCR Details has no quantity ordered', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+            }
+            arr.push({
+                "company_code": columns[0].trim(),
+                "company_name": columns[1].trim(),
+                "branch_code": columns[2].trim(),
+                "store_name": columns[3].trim(),
+                "vendor_code": columns[4].trim(),
+                "vendor_name": columns[5].trim(),
+                "dept_code": columns[6].trim(),
+                "dept_name": columns[7].trim(),
+                "subdept_code": columns[8].trim(),
+                "number_of_cartons": parseInt(columns[9].trim()),
+                "type_of_tag": columns[10].trim(),
+                "terms_discount": columns[11].trim(),
+                "order_type": columns[12].trim(),
+                "label": columns[13].trim(),
+                "po_number": columns[14].trim(),
+                "rcr_number": columns[15].trim(),
+                "invoice_number": columns[16].trim(),
+                "delivery_date": columns[17].trim(),
+                "cancel_date": columns[18].trim(),
+                "class": columns[19].trim(),
+                "subclass": columns[20].trim(),
+                "sku": columns[21].trim(),
+                "description": parseInt(columns[22].trim()),
+                "vendor_part": columns[23].trim(),
+                "upc": columns[24].trim(),
+                "buy_qty": columns[25].trim(),
+                "quantity_ordered": columns[26].trim(),
+                "quantity_delivered": columns[27].trim(),
+                "buy_um": columns[28].trim(),
+                "unit_retail": columns[29].trim(),
+                "sell_um": columns[30].trim(),
+                "total_buy_qty": columns[31].trim(),
+                "total_quantity_ordered": columns[32].trim(),
+                "total_quantity_delivered": columns[33].trim(),
+                "po_notes": columns[34].trim(),
+                "rec_notes": parseInt(columns[35].trim()),
+                "po_notes2": columns[36].trim(),
+                "ordered_by": columns[37].trim(),
+                "proc_by": columns[38].trim(),
+                "style_number": columns[39].trim(),
+                "style_description": columns[40].trim(),
+            });
+        });
+        return arr;
     }
 }
