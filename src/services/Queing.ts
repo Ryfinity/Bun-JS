@@ -12,12 +12,12 @@ class Queing {
 
     public addJob(data: any, queue: string, jobName: string) {
         const myQueue = new Queue(queue, {
-            defaultJobOptions: {
-                attempts: 3,
-            },
+            // defaultJobOptions: {
+            //     attempts: 3,
+            // },
             connection: { redis: this.redisConfig },
         });
-        myQueue.add(jobName, data);
+        myQueue.add(jobName, data, {attempts: 3});
     }
 
     public processVdrJob(queue: any) {
@@ -27,6 +27,12 @@ class Queing {
                 const json = JSON.stringify({
                     "data": job.data,
                 });
+
+                if (job.attemptsMade) { 
+                    const log: any = ["VDR", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
 
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
@@ -74,6 +80,13 @@ class Queing {
             queue,
             async (job: any) => {
                 const json = job.data
+
+                if (job.attemptsMade) { 
+                    const log: any = ["PO Alloc", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
 
@@ -119,6 +132,13 @@ class Queing {
             queue,
             async (job: any) => {
                 const json = job.data
+
+                if (job.attemptsMade) { 
+                    const log: any = ["PO Summary", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
 
@@ -165,6 +185,13 @@ class Queing {
             async (job: any) => {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
                 const json = job.data
+
+                if (job.attemptsMade) { 
+                    const log: any = ["PO Alloc Aff", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
                 
@@ -210,6 +237,13 @@ class Queing {
             queue,
             async (job: any) => {
                 const json = job.data
+
+                if (job.attemptsMade) { 
+                    const log: any = ["RCR Detail", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
                 
@@ -302,6 +336,13 @@ class Queing {
                 const json = JSON.stringify({
                     "data_list": job.data,
                 });
+
+                if (job.attemptsMade) { 
+                    const log: any = ["RCR Detail", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
                 let config = {
@@ -349,6 +390,12 @@ class Queing {
                     "data_list": job.data,
                 });
 
+                if (job.attemptsMade) { 
+                    const log: any = ["RCR Detail", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
                 const TokenService = new Token();
                 const reusableToken = await TokenService.getReusableToken();
                 let config = {
@@ -385,6 +432,59 @@ class Queing {
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+    }
+
+    public processScDrr(queue: any) {
+        const worker = new Worker(
+            queue,
+            async (job: any) => {
+                const json = JSON.stringify({
+                    "data_list": job.data,
+                });
+
+                if (job.attemptsMade) { 
+                    const log: any = ["SCDRR", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                    throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
+                }
+
+                const TokenService = new Token();
+                const reusableToken = await TokenService.getReusableToken();
+                let config = {
+                    method: 'POST',
+                    maxBodyLength: Infinity,
+                    url: 'api/method/smr_asn.api.doc_ds_ddr_api.process_documents_ds_ddr_bulk',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Reusable-Token': reusableToken,
+                    }, 
+                    data : json,
+                };
+
+                await Axios.request(config)
+                .then((response: any) => {  
+                    // console.log(JSON.stringify(response.data));
+                })
+                .catch((error: any) => {
+                    console.log('error dito bakit kaya: Job ID '+ job.id +' | data length '+job.data.length);
+                    var data = [{
+                        'error': error,
+                        'data': job.data
+                    }];
+                    const log: any = ["SCDRR", "ASN", "SCDRR Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    Helpers.reacordActivityLog(log);
+                }); 
+            },
+            { connection: { redis: this.redisConfig }}, 
+        );
+        
+        worker.on('completed', (job: any) => {
+            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+        });
+        
+        worker.on('failed', (job: any, err: any) => {
+            console.log(`Job ID ${job.id} has failed with ${err.message}`);
         });
     }
 }

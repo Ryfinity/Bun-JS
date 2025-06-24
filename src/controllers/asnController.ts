@@ -362,10 +362,46 @@ const processRCRDetl = async (req: any, res: any) => {
     res.status(200).json({message: "RCR Details. Data processed successfully"});
 }
 
+const processSCDRR = async (req: any, res: any) => {
+    const S3 = new S3Client();
+    const txtFile = await Helpers.checkFileIfExist("SCRDR.txt");
+
+    const txtFilename = txtFile.split("/").slice(-1).pop();
+    const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
+
+    https.get(txtFileURL, (res: any) => {
+        const txtPath = pathDownload + txtFilename;
+        const writeStream = fs.createWriteStream(txtPath);
+        res.pipe(writeStream);
+
+        writeStream.on("finish", async () => {
+            writeStream.close();
+            console.log("File downloaded successfully.");
+
+            fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
+                const removeEmptyLine = Helpers.removeEmptyLine(data);
+
+                const lines = await data.toString().split("\r\n");
+                const chunkSize = 500;
+                const chunkData = Helpers.chunkingData(lines, chunkSize);
+
+                const queing = new Queing();
+                chunkData.forEach(async (chunks: any) => {
+                    const arr = Helpers.processSCDRR(chunks);
+                    await queing.addJob(arr, "scDrrQueue", "rcrDetlJob");
+                });
+                await queing.processScDrr("scDrrQueue");  
+            });
+        });
+    });
+
+    res.status(200).json({message: "SCDRR. Data processed successfully"});
+}
+
 const reacordActivityLog = async (details: []) => {
     const insertquery = `INSERT INTO activity_log (log_name, app_name, message, event, properties, created_at, updated_at)  VALUES (?, ?, ?, ?, ?, ?, ?)`
     const [record_activity_log] = await BunConnection.query(insertquery, details);
     return record_activity_log;
 }
 
-module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails, processRCRSum, processRCRDetl };
+module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails, processRCRSum, processRCRDetl, processSCDRR };
