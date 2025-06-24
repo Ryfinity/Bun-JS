@@ -692,5 +692,28 @@ module.exports = {
             });
         });
         return arr;
+    },
+
+    processSCDRR: function(data: []) {
+        const arr: any[] = [];
+        const newArr = data.filter((obj: any) => Object.keys(obj).length > 0);
+
+        newArr.forEach((i: any) => {
+            const columns = i.split("|");
+            if (columns.length < 7) {
+                this.reacordActivityLog(['SCDRR', 'SHS', 'SCDRR has less than 7 columns', 'Error', JSON.stringify(columns), this.getDateTimeNow(), this.getDateTimeNow()]);
+                return;
+            }  
+            arr.push({
+                "store_code": parseInt(columns[0].trim()),
+                "vendor_code": parseInt(columns[1].trim()),
+                "dept_code": parseInt(columns[2].trim()),
+                "subdept_code": parseInt(columns[3].trim()),
+                "class_code": parseInt(columns[4].trim()),
+                "dr_number": parseInt(columns[5].trim()),
+                "post_date": parseInt(columns[6].trim()),
+            });
+        });
+        return arr;
     }
 }
