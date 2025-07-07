@@ -12,12 +12,9 @@ class Queing {
 
     public addJob(data: any, queue: string, jobName: string) {
         const myQueue = new Queue(queue, {
-            // defaultJobOptions: {
-            //     attempts: 3,
-            // },
             connection: { redis: this.redisConfig },
         });
-        myQueue.add(jobName, data, {attempts: 3});
+        myQueue.add(jobName, data, {attempts: 3, removeOnComplete: true});
     }
 
     public processVdrJob(queue: any) {
@@ -444,7 +441,7 @@ class Queing {
                 });
 
                 if (job.attemptsMade) { 
-                    const log: any = ["SCDRR", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["SCDRR", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                     throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
                 }
@@ -462,19 +459,13 @@ class Queing {
                     data : json,
                 };
 
-                await Axios.request(config)
-                .then((response: any) => {  
-                    // console.log(JSON.stringify(response.data));
-                })
-                .catch((error: any) => {
-                    console.log('error dito bakit kaya: Job ID '+ job.id +' | data length '+job.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["SCDRR", "ASN", "SCDRR Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                try {
+                    await Axios.request(config)
+                } catch (error: any) {
+                    const log: any = ["SCDRR", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
-                }); 
+                    throw error;
+                }
             },
             { connection: { redis: this.redisConfig }}, 
         );

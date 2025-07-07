@@ -41,21 +41,22 @@ class AwsS3 {
         
     }
     
-    async deleteFile(key: any) {
+    async deleteFile(key: any, fileName: string) {
         const copyparams = {
             Bucket: this.bucketName,
             CopySource: this.bucketName + '/' + key,
-            Key: this.archive + '/POALLOC.txt'
+            Key: this.archive + '/' + fileName
         };
         await S3Client.send(new CopyObjectCommand(copyparams));
-
+ 
         const deleteparams = {
             Bucket: this.bucketName,
             Key: key
         };
-
+ 
         await S3Client.send(new DeleteObjectCommand(deleteparams));
-        console.log(`File moved from ${copyparams.Key} to ${deleteparams.Key}`);
+        console.log(`File moved from ${deleteparams.Key} to ${copyparams.Key}`);
+        return `File moved from ${deleteparams.Key} to ${copyparams.Key}`;
     }
 }
 

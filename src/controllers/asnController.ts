@@ -365,7 +365,9 @@ const processRCRDetl = async (req: any, res: any) => {
 const processSCDRR = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("SCRDR.txt");
-
+    if (!txtFile) {
+        return "SCDRR file not found";
+    }
     const txtFilename = txtFile.split("/").slice(-1).pop();
     const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
 
@@ -376,7 +378,7 @@ const processSCDRR = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing SCDRR...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -394,8 +396,10 @@ const processSCDRR = async (req: any, res: any) => {
             });
         });
     });
-
-    res.status(200).json({message: "SCDRR. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    const log: any = ["SCDRR", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "SCDRR. Data processed successfully";
 }
 
 const reacordActivityLog = async (details: []) => {
