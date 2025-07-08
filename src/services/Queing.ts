@@ -377,6 +377,13 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ RCRSUM queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processRCRDetl();
+            Helpers.reacordActivityLog(["RCRSUM", "ASN", "File: RCRSUM.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processRcrDetl(queue: any) {
@@ -430,6 +437,11 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ RCR Detail queues are completed!');
+            Helpers.reacordActivityLog(["RCR Detail", "ASN", "File: RCRDTL.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processScDrr(queue: any) {
@@ -476,6 +488,11 @@ class Queing {
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`Job ID ${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ SCDRR Detail queues are completed!');
+            Helpers.reacordActivityLog(["SCDRR", "ASN", "File: SCDRR.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 }

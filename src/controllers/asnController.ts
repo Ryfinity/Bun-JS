@@ -293,7 +293,9 @@ const processPODetails = async (req: any, res: any) => {
 const processRCRSum = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("RCRSUM.txt");
-
+    if (!txtFile) {
+        return "RCRSUM file not found";
+    }
     const txtFilename = txtFile.split("/").slice(-1).pop();
     const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
 
@@ -304,7 +306,7 @@ const processRCRSum = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing RCRSUM...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -322,14 +324,18 @@ const processRCRSum = async (req: any, res: any) => {
             });
         });
     });
-
-    res.status(200).json({message: "RCR Summary. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    const log: any = ["RCRSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "RCRSUM. Data processed successfully";
 }
 
 const processRCRDetl = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("RCRDTL.txt");
-
+    if (!txtFile) {
+        return "RCRSUM file not found";
+    }
     const txtFilename = txtFile.split("/").slice(-1).pop();
     const txtFileURL =  await S3.fileURL(txtFile, txtFilename); 
 
@@ -340,7 +346,7 @@ const processRCRDetl = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing RCRDTL...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -358,8 +364,10 @@ const processRCRDetl = async (req: any, res: any) => {
             });
         });
     });
-
-    res.status(200).json({message: "RCR Details. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    const log: any = ["RCRDTL", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "RCRDTL. Data processed successfully";
 }
 
 const processSCDRR = async (req: any, res: any) => {
