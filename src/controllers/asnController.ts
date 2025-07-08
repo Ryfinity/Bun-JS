@@ -11,17 +11,20 @@ const pathDownload = "public/downloads/";
 const processVdrdata = async (req: any, res: any) => {
     try {
         var selectquery = "";
-        const [activity_log_row] = await BunConnection.query("SELECT * FROM activity_log WHERE log_name = 'VDR' AND properties is NOT NULL ORDER BY id DESC");
+        const [activity_log_row] = await BunConnection.query("SELECT * FROM activity_log WHERE log_name = 'VDR' AND properties != '' ORDER BY id DESC");
 
         if (activity_log_row.length) {
-            console.log('Activity log detective')
             var selectquery = `SELECT * FROM asn_vdr_data WHERE validation = 1 AND date_updated > '${Helpers.utcFormatDateTime(JSON.parse(activity_log_row[0].properties).date_updated)}' ORDER BY date_updated DESC`;
         } else {
-            console.log('No activity log')
+            console.log('❌ No record in activity log')
             var selectquery = "SELECT * FROM asn_vdr_data WHERE validation = 1 ORDER BY date_updated DESC";
         }
 
         const [rows] = await Database.query(selectquery);
+        if (rows.length === 0) {
+            console.log("📑 No new VDR data to process");
+            return false;
+        }
         const rowsWithoutKey = Helpers.removeKeyFromObject(rows, "id");
         const chunkedData = Helpers.chunkingData(rowsWithoutKey, 500);
 
@@ -39,9 +42,9 @@ const processVdrdata = async (req: any, res: any) => {
         const log: any = ["VDR", "ASN", "VDR Last Record Inserted", "Insert", JSON.stringify(last_row[0]), Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
         reacordActivityLog(log)
 
-        res.status(200).json({message: "Data processed successfully"});
+        return "VDR Data processed successfully"
     } catch {
-        res.status(500).send("Internal Error");
+        return "Internal Error"
     }
 }
 

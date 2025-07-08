@@ -18,7 +18,7 @@ class Scheduler {
                     console.log('⏳ The scdrr queue is not empty. Job counts waiting:', counts.waiting);
                 }
             } else {
-                console.log("SCRDR file not found. Waiting for files to be available.");
+                console.log("❌ SCRDR file not found. Waiting for files to be available.");
             }
             
             await this.sleep(interval);
@@ -39,7 +39,24 @@ class Scheduler {
                     console.log('⏳ The rcrsum queue is not empty. Job counts waiting:', counts.waiting);
                 }
             } else {
-                console.log("RCRSUM or RCRDTL file not found. Waiting for files to be available.");
+                console.log("❌ RCRSUM or RCRDTL file not found. Waiting for files to be available.");
+            }
+
+            await this.sleep(interval);
+        }
+    }
+
+    async vdrdata(shouldStop: boolean, interval: number, queueName: string) {
+        while (!shouldStop) {
+            const queue = new Queue(queueName);
+            const counts = await queue.getJobCounts();
+            const totalJobs = counts.completed + counts.delayed + 
+                            counts.active + counts.waiting + counts.paused;
+
+            if (totalJobs === 0) {
+                await asnController.processVdrdata();
+            } else {
+                console.log('⏳ The vdrdata queue is not empty. Job counts waiting:', counts.waiting);
             }
 
             await this.sleep(interval);
