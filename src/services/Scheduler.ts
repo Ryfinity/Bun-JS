@@ -1,5 +1,6 @@
 const { Queue } = require("bullmq");
 const asnController = require("../controllers/asnController");
+const Helpers = require("../helpers/global_function");
 
 class Scheduler {
 
@@ -10,11 +11,37 @@ class Scheduler {
             const totalJobs = counts.completed + counts.delayed + 
                             counts.active + counts.waiting + counts.paused;
 
-            if (totalJobs === 0) {
-                await asnController.processSCDRR();
+            if (await Helpers.checkFileIfExist("SCRDR.txt")) {
+                if (totalJobs === 0) {
+                    await asnController.processSCDRR();
+                } else {
+                    console.log('⏳ The scdrr queue is not empty. Job counts waiting:', counts.waiting);
+                }
             } else {
-                console.log('The scdrr queue is not empty. Job counts waiting:', counts.waiting);
+                console.log("SCRDR file not found. Waiting for files to be available.");
             }
+            
+            await this.sleep(interval);
+        }
+    }
+
+    async rcrsum(shouldStop: boolean, interval: number, queueName: string) {
+        while (!shouldStop) {
+            const queue = new Queue(queueName);
+            const counts = await queue.getJobCounts();
+            const totalJobs = counts.completed + counts.delayed + 
+                            counts.active + counts.waiting + counts.paused;
+
+            if (await Helpers.checkFileIfExist("RCRSUM.txt") && await Helpers.checkFileIfExist("RCRDTL.txt")) {
+                if (totalJobs === 0) {
+                    await asnController.processRCRSum();
+                } else {
+                    console.log('⏳ The rcrsum queue is not empty. Job counts waiting:', counts.waiting);
+                }
+            } else {
+                console.log("RCRSUM or RCRDTL file not found. Waiting for files to be available.");
+            }
+
             await this.sleep(interval);
         }
     }

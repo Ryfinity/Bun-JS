@@ -25,7 +25,7 @@ module.exports = {
         const files = await S3.listFiles();
         const filteredFiles = files.filter((f: any) => f.key.includes(file)).map((f: any) => f.key);
         if (filteredFiles.length == 0) {
-            console.log('No file found.')
+            // console.log('No file found.')
             return;
         }
         return filteredFiles[0];
