@@ -70,6 +70,11 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ VDR Data queues are completed!');
+            Helpers.reacordActivityLog(["VDR", "ASN", "Data has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processPoAllocJob(queue: any) {
