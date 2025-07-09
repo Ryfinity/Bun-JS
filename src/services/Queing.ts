@@ -127,6 +127,13 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Alloc queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOAllocAff();
+            Helpers.reacordActivityLog(["PO Alloc", "ASN", "File: POALLOC.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processPoSum(queue: any) {
@@ -178,6 +185,13 @@ class Queing {
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Sum queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPODetails();
+            Helpers.reacordActivityLog(["PO Sum", "ASN", "File: posum.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -232,6 +246,13 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Alloc aff queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOSet();
+            Helpers.reacordActivityLog(["PO Alloc aff", "ASN", "File: POALLOC_AFF.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processPoSet(queue: any) {
@@ -284,6 +305,11 @@ class Queing {
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
         });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Set queues are completed!');
+            Helpers.reacordActivityLog(["PO Set", "ASN", "File: POSET.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
+        });
     }
 
     public processPoDetl(queue: any) {
@@ -328,6 +354,13 @@ class Queing {
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Details queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOAlloc();
+            Helpers.reacordActivityLog(["PO Details", "ASN", "File: podetl.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 

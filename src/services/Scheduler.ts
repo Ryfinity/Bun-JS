@@ -63,6 +63,30 @@ class Scheduler {
         }
     }
 
+    async posum(shouldStop: boolean, interval: number, queueName: string) {
+        while (!shouldStop) {
+            const queue = new Queue(queueName);
+            const counts = await queue.getJobCounts();
+            const totalJobs = counts.completed + counts.delayed + 
+                            counts.active + counts.waiting + counts.paused;
+
+            if (await Helpers.checkFileIfExist("posum.txt") && await Helpers.checkFileIfExist("posum.hsh")
+                && await Helpers.checkFileIfExist("podetl.txt") && await Helpers.checkFileIfExist("podetl.hsh")
+                && await Helpers.checkFileIfExist("POALLOC.txt") && await Helpers.checkFileIfExist("POALLOC.hsh")
+                && await Helpers.checkFileIfExist("POALLOC_AFF.txt") && await Helpers.checkFileIfExist("POALLOC_AFF.hsh")) {
+                if (totalJobs === 0) {
+                    await asnController.processPOSum();
+                } else {
+                    console.log('⏳ The scdrr queue is not empty. Job counts waiting:', counts.waiting);
+                }
+            } else {
+                console.log("❌ PO Sum file not found. Waiting for files to be available.");
+            }
+            
+            await this.sleep(interval);
+        }
+    }
+
     sleep(interval: number) {
         return new Promise(resolve => setTimeout(resolve, interval));
     }

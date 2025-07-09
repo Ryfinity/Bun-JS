@@ -101,7 +101,9 @@ const processPOSum = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("posum.hsh");
     const txtFile = await Helpers.checkFileIfExist("posum.txt");
-
+    if (!txtFile && !shsFile) {
+        return "PO Sum txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -118,14 +120,19 @@ const processPOSum = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing PO Sum...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Sum SHS and TXT file length do not match.");
+                    const log: any = ["PO Sum", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -143,14 +150,20 @@ const processPOSum = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Summary. Data processed successfully"});
+    S3.deleteFile(shsFile, shsFilename);
+    S3.deleteFile(txtFile, txtFilename);
+    const log: any = ["POSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "PO Summary. Data processed successfully";
 }
 
 const processPOAllocAff = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("POALLOC_AFF.hsh");
     const txtFile = await Helpers.checkFileIfExist("POALLOC_AFF.txt");
-
+    if (!txtFile && !shsFile) {
+        return "PO Alloc aff txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -167,14 +180,19 @@ const processPOAllocAff = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing PO Alloc aff...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Alloc aff SHS and TXT file length do not match.");
+                    const log: any = ["PO Alloc aff", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -192,14 +210,20 @@ const processPOAllocAff = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Aff. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    S3.deleteFile(shsFile, shsFilename);
+    const log: any = ["PO ALLOC AFF", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "PPO Aff. Data processed successfully";
 }
 
 const processPOSet = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("POSET.hsh");
     const txtFile = await Helpers.checkFileIfExist("POSET.txt");
-
+    if (!txtFile && !shsFile) {
+        return "PO Set txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -216,14 +240,19 @@ const processPOSet = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing PO Set...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Set SHS and TXT file length do not match.");
+                    const log: any = ["PO Set", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -241,14 +270,20 @@ const processPOSet = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Prepack. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    S3.deleteFile(shsFile, shsFilename);
+    const log: any = ["PO SET", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "PO Prepack. Data processed successfully";
 }
 
 const processPODetails = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("podetl.hsh");
     const txtFile = await Helpers.checkFileIfExist("podetl.txt");
-
+    if (!txtFile && !shsFile) {
+        return "PO Detail txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -265,14 +300,19 @@ const processPODetails = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("File downloaded successfully. Processing PO Detl...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Detail SHS and TXT file length do not match.");
+                    const log: any = ["PO Detail", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -290,7 +330,11 @@ const processPODetails = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Details. Data processed successfully"});
+    S3.deleteFile(txtFile, txtFilename);
+    S3.deleteFile(shsFile, shsFilename);
+    const log: any = ["POSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+    reacordActivityLog(log)
+    return "PO Details. Data processed successfully";
 }
 
 const processRCRSum = async (req: any, res: any) => {
