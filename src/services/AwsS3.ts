@@ -55,7 +55,7 @@ class AwsS3 {
         };
  
         await S3Client.send(new DeleteObjectCommand(deleteparams));
-        console.log(`File moved from ${deleteparams.Key} to ${copyparams.Key}`);
+        console.log(`📁 File moved from ${deleteparams.Key} to ${copyparams.Key}`);
         return `File moved from ${deleteparams.Key} to ${copyparams.Key}`;
     }
 }

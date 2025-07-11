@@ -80,7 +80,7 @@ class Scheduler {
                     console.log('⏳ The scdrr queue is not empty. Job counts waiting:', counts.waiting);
                 }
             } else {
-                console.log("❌ PO Sum file not found. Waiting for files to be available.");
+                console.log("❌ PO files not yet completed. Waiting for files to be available.");
             }
             
             await this.sleep(interval);
