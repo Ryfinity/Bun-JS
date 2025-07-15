@@ -50,13 +50,8 @@ class Queing {
                     // console.log(JSON.stringify(response.data));
                 })
                 .catch((error: any) => {
-                    console.log(error);
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Alloc", "ASN", "PO Alloc Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["VDR", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
                     Helpers.reacordActivityLog(log);
                 });
             },
@@ -64,7 +59,7 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
@@ -84,7 +79,7 @@ class Queing {
                 const json = job.data
 
                 if (job.attemptsMade) { 
-                    const log: any = ["PO Alloc", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Alloc", "ASN", "Retried jobs attempts " + job.attemptsMade, "Error", job.data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
                     Helpers.reacordActivityLog(log);
                     throw new Error('Simulated job failure. Retried ' + job.attemptsMade + ' times.');
                 }
@@ -109,11 +104,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +' | data length '+job.data.data.length);
-                    var data = [{   
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Alloc", "ASN", "PO Alloc Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Alloc", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -121,11 +112,18 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Alloc queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOAllocAff();
+            Helpers.reacordActivityLog(["PO Alloc", "ASN", "File: POALLOC.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -161,11 +159,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Summary", "ASN", "PO Summary Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Summary", "ASN",  error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -173,11 +167,18 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Sum queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPODetails();
+            Helpers.reacordActivityLog(["PO Sum", "ASN", "File: posum.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -214,11 +215,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Alloc Aff", "ASN", "PO Alloc Aff Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Alloc Aff", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -226,11 +223,18 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Alloc aff queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOSet();
+            Helpers.reacordActivityLog(["PO Alloc aff", "ASN", "File: POALLOC_AFF.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -266,11 +270,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Set", "ASN", "PO Set Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Set", "ASN",  error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -278,11 +278,16 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Set queues are completed!');
+            Helpers.reacordActivityLog(["PO Set", "ASN", "File: POSET.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -311,11 +316,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["PO Detail", "ASN", "PO Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["PO Detail", "ASN",  error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -323,11 +324,18 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
             console.log(`${job.id} has failed with ${err.message}`);
+        });
+
+        worker.on('drained', () => {
+            console.log('✅ PO Detail queues are completed!');
+            const asnController = require("../controllers/asnController");
+            asnController.processPOAlloc();
+            Helpers.reacordActivityLog(["PO Detail", "ASN", "File: podetl.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
 
@@ -364,11 +372,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["RCR Detail", "ASN", "RCR Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["RCR Summary", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -376,7 +380,7 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
@@ -424,11 +428,7 @@ class Queing {
                 })
                 .catch((error: any) => {
                     console.log('error dito bakit kaya: Job ID '+ job.id +'| data length '+job.data.length);
-                    var data = [{
-                        'error': error,
-                        'data': job.data
-                    }];
-                    const log: any = ["RCR Detail", "ASN", "RCR Detail Error", "Error", data, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    const log: any = ["RCR Detail", "ASN", error.message, "Error", json, Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
                     Helpers.reacordActivityLog(log);
                 }); 
             },
@@ -436,7 +436,7 @@ class Queing {
         );
         
         worker.on('completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
@@ -487,7 +487,7 @@ class Queing {
             { connection: { redis: this.redisConfig }}, 
         );
         
-        worker.on('completed', (job: any) => {
+        worker.on('🚦 completed', (job: any) => {
             console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         

@@ -26,7 +26,7 @@ module.exports = {
         const filteredFiles = files.filter((f: any) => f.key.includes(file)).map((f: any) => f.key);
         if (filteredFiles.length == 0) {
             // console.log('No file found.')
-            return;
+            return false;
         }
         return filteredFiles[0];
     },
@@ -39,7 +39,7 @@ module.exports = {
 
             writeStream.on("finish", () => {
                 writeStream.close();
-                console.log("File downloaded successfully.");
+                // console.log("File downloaded successfully.");
             });
 
             writeStream.on("error", (err: any) => {
@@ -61,10 +61,9 @@ module.exports = {
 
     validateShsDataAndTxtLength: function(shsData: number, txtData: number) {
         if (shsData != txtData) {
-            console.log('Length not match.');
-            return;
+            return false;
         }
-        return shsData+'Match'+txtData;
+        return true;
     },
 
     getDateTimeNow: function() {

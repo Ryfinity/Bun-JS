@@ -52,7 +52,10 @@ const processPOAlloc = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("POALLOC.hsh");
     const txtFile = await Helpers.checkFileIfExist("POALLOC.txt");
-
+    if (!txtFile && !shsFile) {
+        console.log("❌ PO Alloc txt or hsh file not found");
+        return "PO Alloc txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -69,14 +72,19 @@ const processPOAlloc = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("⬇️  File downloaded successfully. Processing PO Alloc...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Alloc SHS and TXT file length do not match.");
+                    const log: any = ["PO Alloc", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -87,6 +95,11 @@ const processPOAlloc = async (req: any, res: any) => {
                     await queing.addJob(arr, "poAllocQueue", "poAllocJob");
                 });
                 await queing.processPoAllocJob("poAllocQueue");  
+
+                S3.deleteFile(shsFile, shsFilename);
+                S3.deleteFile(txtFile, txtFilename);
+                const log: any = ["POALLOC", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
 
@@ -94,14 +107,18 @@ const processPOAlloc = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Allocation. Data processed successfully"});
+   
+    return "PO Alloc. Data processed successfully";
 }
 
 const processPOSum = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("posum.hsh");
     const txtFile = await Helpers.checkFileIfExist("posum.txt");
-
+    if (!txtFile && !shsFile) {
+        console.log("❌ PO Sum txt or hsh file not found");
+        return "PO Sum txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -118,14 +135,19 @@ const processPOSum = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("⬇️  File downloaded successfully. Processing PO Sum...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Sum SHS and TXT file length do not match.");
+                    const log: any = ["PO Sum", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                    reacordActivityLog(log);
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -136,6 +158,11 @@ const processPOSum = async (req: any, res: any) => {
                     await queing.addJob(arr, "poSumQueue", "poSumJob");
                 });
                 await queing.processPoSum("poSumQueue");  
+
+                S3.deleteFile(shsFile, shsFilename);
+                S3.deleteFile(txtFile, txtFilename);
+                const log: any = ["POSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
 
@@ -143,14 +170,18 @@ const processPOSum = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Summary. Data processed successfully"});
+    
+    return "PO Summary. Data processed successfully";
 }
 
 const processPOAllocAff = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("POALLOC_AFF.hsh");
     const txtFile = await Helpers.checkFileIfExist("POALLOC_AFF.txt");
-
+    if (!txtFile && !shsFile) {
+        console.log("❌ PO Alloc aff txt or hsh file not found");
+        return "PO Alloc aff txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -167,14 +198,19 @@ const processPOAllocAff = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("⬇️  File downloaded successfully. Processing PO Alloc aff...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Alloc aff SHS and TXT file length do not match.");
+                    const log: any = ["PO Alloc aff", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                    reacordActivityLog(log);
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -185,6 +221,11 @@ const processPOAllocAff = async (req: any, res: any) => {
                     await queing.addJob(arr, "poAllocAffQueue", "poAllocAffJob");
                 });
                 await queing.processPoAllocAff("poAllocAffQueue");  
+
+                S3.deleteFile(txtFile, txtFilename);
+                S3.deleteFile(shsFile, shsFilename);
+                const log: any = ["PO ALLOC AFF", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
 
@@ -192,14 +233,18 @@ const processPOAllocAff = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Aff. Data processed successfully"});
+
+    return "PPO Aff. Data processed successfully";
 }
 
 const processPOSet = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("POSET.hsh");
     const txtFile = await Helpers.checkFileIfExist("POSET.txt");
-
+    if (!txtFile && !shsFile) {
+        console.log("❌ PO Set txt or hsh file not found");
+        return "PO Set txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -216,14 +261,19 @@ const processPOSet = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("⬇️  File downloaded successfully. Processing PO Set...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Set SHS and TXT file length do not match.");
+                    const log: any = ["PO Set", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                    reacordActivityLog(log);
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -234,6 +284,11 @@ const processPOSet = async (req: any, res: any) => {
                     await queing.addJob({"data": arr}, "poSetQueue", "poSetJob");
                 });
                 await queing.processPoSet("poSetQueue");  
+
+                S3.deleteFile(txtFile, txtFilename);
+                S3.deleteFile(shsFile, shsFilename);
+                const log: any = ["PO SET", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
 
@@ -241,14 +296,18 @@ const processPOSet = async (req: any, res: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Prepack. Data processed successfully"});
+    
+    return "PO Prepack. Data processed successfully";
 }
 
 const processPODetails = async (req: any, res: any) => {
     const S3 = new S3Client();
     const shsFile = await Helpers.checkFileIfExist("podetl.hsh");
     const txtFile = await Helpers.checkFileIfExist("podetl.txt");
-
+    if (!txtFile && !shsFile) {
+        console.log("❌ PO Detail txt or hsh file not found");
+        return "PO Detail txt or hsh file not found";
+    }
     const shsFilename = shsFile.split("/").slice(-1).pop();
     const txtFilename = txtFile.split("/").slice(-1).pop();
 
@@ -265,14 +324,19 @@ const processPODetails = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully.");
+            console.log("⬇️  File downloaded successfully. Processing PO Detl...");
 
             const shsData = await Helpers.calculateFileHash(shsPath);
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
                 const validateShsAndTxt = Helpers.validateShsDataAndTxtLength(shsData[0], removeEmptyLine);
-
+                if (validateShsAndTxt === false) {
+                    console.log("❌ PO Detail SHS and TXT file length do not match.");
+                    const log: any = ["PO Detail", "ASN", "SHS and TXT file length do not match.", "Error", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
+                    reacordActivityLog(log)
+                    return;
+                }
                 const lines = await data.toString().split("\r\n");
                 const chunkSize = 500;
                 const chunkData = Helpers.chunkingData(lines, chunkSize);
@@ -283,20 +347,26 @@ const processPODetails = async (req: any, res: any) => {
                     await queing.addJob({"data": arr}, "poDetlQueue", "poDetlJob");
                 });
                 await queing.processPoDetl("poDetlQueue");  
+
+                S3.deleteFile(txtFile, txtFilename);
+                S3.deleteFile(shsFile, shsFilename);
+                const log: any = ["POSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
-
         writeStream.on("error", (err: any) => {
             console.error("Error writing file:", err);
         });
     });
-    res.status(200).json({message: "PO Details. Data processed successfully"});
+
+    return "PO Details. Data processed successfully";
 }
 
 const processRCRSum = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("RCRSUM.txt");
     if (!txtFile) {
+        console.log("❌ RCRSUM file not found");
         return "RCRSUM file not found";
     }
     const txtFilename = txtFile.split("/").slice(-1).pop();
@@ -309,7 +379,7 @@ const processRCRSum = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully. Processing RCRSUM...");
+            console.log("⬇️  File downloaded successfully. Processing RCRSUM...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -324,12 +394,14 @@ const processRCRSum = async (req: any, res: any) => {
                     await queing.addJob(arr, "rcrSumQueue", "rcrSumJob");
                 });
                 await queing.processRcrSum("rcrSumQueue");  
+
+                S3.deleteFile(txtFile, txtFilename);
+                const log: any = ["RCRSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
     });
-    S3.deleteFile(txtFile, txtFilename);
-    const log: any = ["RCRSUM", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
-    reacordActivityLog(log)
+
     return "RCRSUM. Data processed successfully";
 }
 
@@ -337,6 +409,7 @@ const processRCRDetl = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("RCRDTL.txt");
     if (!txtFile) {
+        console.log("❌ RCRSUM file not found");
         return "RCRSUM file not found";
     }
     const txtFilename = txtFile.split("/").slice(-1).pop();
@@ -349,7 +422,7 @@ const processRCRDetl = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully. Processing RCRDTL...");
+            console.log("⬇️  File downloaded successfully. Processing RCRDTL...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -363,13 +436,15 @@ const processRCRDetl = async (req: any, res: any) => {
                     const arr = Helpers.processRCRDetl(chunks);
                     await queing.addJob(arr, "rcrDetlQueue", "rcrDetlJob");
                 });
-                await queing.processRcrDetl("rcrDetlQueue");  
+                await queing.processRcrDetl("rcrDetlQueue"); 
+
+                S3.deleteFile(txtFile, txtFilename);
+                const log: any = ["RCRDTL", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
     });
-    S3.deleteFile(txtFile, txtFilename);
-    const log: any = ["RCRDTL", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
-    reacordActivityLog(log)
+
     return "RCRDTL. Data processed successfully";
 }
 
@@ -377,6 +452,7 @@ const processSCDRR = async (req: any, res: any) => {
     const S3 = new S3Client();
     const txtFile = await Helpers.checkFileIfExist("SCRDR.txt");
     if (!txtFile) {
+        console.log("❌ RCRSUM file not found");
         return "SCDRR file not found";
     }
     const txtFilename = txtFile.split("/").slice(-1).pop();
@@ -389,7 +465,7 @@ const processSCDRR = async (req: any, res: any) => {
 
         writeStream.on("finish", async () => {
             writeStream.close();
-            console.log("File downloaded successfully. Processing SCDRR...");
+            console.log("⬇️  File downloaded successfully. Processing SCDRR...");
 
             fs.readFile(txtPath, "utf8", async (err: any, data: any) => {
                 const removeEmptyLine = Helpers.removeEmptyLine(data);
@@ -404,12 +480,14 @@ const processSCDRR = async (req: any, res: any) => {
                     await queing.addJob(arr, "scDrrQueue", "rcrDetlJob");
                 });
                 await queing.processScDrr("scDrrQueue");  
+
+                S3.deleteFile(txtFile, txtFilename);
+                const log: any = ["SCDRR", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()];
+                reacordActivityLog(log);
             });
         });
     });
-    S3.deleteFile(txtFile, txtFilename);
-    const log: any = ["SCDRR", "ASN", "Filename: "+txtFilename+" has been removed to archive", "Delete", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
-    reacordActivityLog(log)
+
     return "SCDRR. Data processed successfully";
 }
 
