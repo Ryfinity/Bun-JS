@@ -38,7 +38,7 @@ const processVdrdata = async (req: any, res: any) => {
         });
         await queing.processVdrJob("vdrQueue");
 
-        const [last_row] = await Database.query(selectquery);
+        const [last_row] = await BunConnection.query(selectquery);
         const log: any = ["VDR", "ASN", "VDR Last Record Inserted", "Insert", JSON.stringify(last_row[0]), Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]
         reacordActivityLog(log)
 
