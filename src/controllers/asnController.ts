@@ -1,5 +1,4 @@
 const Database = require("../config/AsnConnection");
-const AsnV2Database = require("../config/AsnV2Connection");
 const BunConnection = require("../config/BunConnection")
 const Queing = require("../services/Queing");
 const S3Client = require("../services/AwsS3");
