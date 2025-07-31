@@ -487,8 +487,8 @@ class Queing {
             { connection: { redis: this.redisConfig }}, 
         );
         
-        worker.on('🚦 completed', (job: any) => {
-            console.log(`Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
+        worker.on('completed', (job: any) => {
+            console.log(`🚦 Job ID ${job.id} has completed! Inserted ${job.data.length} data`);
         });
         
         worker.on('failed', (job: any, err: any) => {
