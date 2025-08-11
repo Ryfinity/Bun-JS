@@ -500,6 +500,50 @@ class Queing {
             Helpers.reacordActivityLog(["SCDRR", "ASN", "File: SCDRR.txt has been processed", "Completed", "", Helpers.getDateTimeNow(), Helpers.getDateTimeNow()]);
         });
     }
+
+    public async autoRegistration(data: any) {
+        try {
+            const json = {
+                'vendor_data': {
+                    'user_data': [
+                        {
+                            'username': data.user_name,
+                            'email': data.email_id,
+                            'first_name': data.first_name
+                        }
+                    ],
+                    'vp_data': [
+                        {
+                            'vendor_code': data.vendor_code,
+                            'vendor_name': data.vendor_name
+                        }
+                    ],
+                    'asn_user_data': [
+                        {
+                            'description': data.vendor_type_desc
+                        }
+                    ]
+                }
+            }
+
+            const TokenService = new Token();
+            const reusableToken = await TokenService.getReusableToken();
+            let config = {
+                method: 'POST',
+                url: 'api/method/smr_asn.api.vendor_auth_api.vendor_login_registration',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Reusable-Token': reusableToken,
+                }, 
+                data : json,
+            };
+            const response = await Axios.request(config); 
+            return response.data.message.location;
+
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = Queing;

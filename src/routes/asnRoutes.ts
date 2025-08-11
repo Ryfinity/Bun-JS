@@ -8,7 +8,8 @@ const {
     processPODetails,
     processRCRSum,
     processRCRDetl,
-    processSCDRR
+    processSCDRR,
+    autoRegistration
 } = require("../controllers/AsnController");
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.get("/po-detl", processPODetails);
 router.get("/rcr-sum", processRCRSum);
 router.get("/rcr-detl", processRCRDetl);
 router.get("/scrdr", processSCDRR);
+router.get("/user/:id", autoRegistration);
 
 module.exports = router;
