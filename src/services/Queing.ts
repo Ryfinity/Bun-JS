@@ -1,6 +1,6 @@
 const { Queue, Worker  } = require("bullmq");
-const Axios = require("../config/Axios");
-const Token = require("../services/Token");
+const Axios = require("../config/axios");
+const Token = require("../services/token");
 const { REDIS_HOST, REDIS_PORT } = process.env;
 const Helpers = require("../helpers/global_function");
 
