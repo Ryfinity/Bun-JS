@@ -9,7 +9,7 @@ const {
     processRCRSum,
     processRCRDetl,
     processSCDRR
-} = require("../controllers/AsnController");
+} = require("../controllers/asnController");
 
 const router = express.Router();
 

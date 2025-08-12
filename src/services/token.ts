@@ -1,4 +1,4 @@
-const axios = require("../config/Axios");
+const axios = require("../config/axios");
  
 class Token {
     async getReusableToken() {
