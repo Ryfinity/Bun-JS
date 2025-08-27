@@ -52,3 +52,8 @@ BUN_DB_DATABASE = "bun_js"
 BUN_DB_PORT = 3306
 ```
 
+
+# Docker 
+docker build -t bun-app .
+docker run -p 3000:3000 bun-app
+
