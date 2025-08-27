@@ -490,10 +490,61 @@ const processSCDRR = async (req: any, res: any) => {
     return "SCDRR. Data processed successfully";
 }
 
+const autoRegistration = async (req: any, res: any) => {
+    const loginID = req.params.id;
+
+    if (loginID.includes('-')) {
+        var query = `SELECT b.vendor_code
+            ,c.VENDOR_NAME AS vendor_name
+            ,a.login_id AS user_name
+            ,a.first_name
+            ,a.middle_name
+            ,a.last_name
+            ,a.phone_no
+            ,a.email_id
+            ,a.user_active_flag
+        FROM vl_form_Vendor_user a 
+        JOIN admin_user_vendor b 
+            ON a.login_id = b.login_name 
+        JOIN dim_vendor c 
+            ON c.VENDOR_CODE = SUBSTRING(a.LOGIN_ID,1,POSITION("-" IN A.LOGIN_ID)-1)
+        WHERE 1=1
+        AND c.vendor_type_code IN('002','003')
+        AND a.LOGIN_ID IN ('${loginID}');`;
+    } else {
+        var query = `SELECT a.vendor_code
+            ,b.vendor_name
+            ,b.vendor_type_code
+            ,c.vendor_type_desc
+            ,a.login_id AS user_name
+            ,a.first_name
+            ,a.last_name
+            ,a.email_id
+            ,a.phone_no
+            ,b.office_address1
+            ,a.user_active_flag
+        FROM vl_form_Vendor a 
+        JOIN dim_vendor b 
+        ON a.vendor_code = b.vendor_code
+        JOIN dim_vendor_type c 
+        ON b.vendor_type_code=c.vendor_type_code
+        WHERE 1=1
+        AND a.LOGIN_ID IN ('${loginID}') 
+        AND a.vendor_type IN('002','003');`;
+    }
+
+    const [rows] = await Database.query(query);
+
+    const queing = new Queing();
+    const process = await queing.autoRegistration(rows[0]);
+    
+    res.redirect(process)
+}
+
 const reacordActivityLog = async (details: []) => {
     const insertquery = `INSERT INTO activity_log (log_name, app_name, message, event, properties, created_at, updated_at)  VALUES (?, ?, ?, ?, ?, ?, ?)`
     const [record_activity_log] = await BunConnection.query(insertquery, details);
     return record_activity_log;
 }
 
-module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails, processRCRSum, processRCRDetl, processSCDRR };
+module.exports = { processVdrdata, processPOAlloc, processPOSum, processPOAllocAff, processPOSet, processPODetails, processRCRSum, processRCRDetl, processSCDRR, autoRegistration };
