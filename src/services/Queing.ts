@@ -538,7 +538,7 @@ class Queing {
                 data : json,
             };
             const response = await Axios.request(config); 
-            return response.data.message.location;
+            return response.data.message.login_url;
 
         } catch (error) {
             throw error;
